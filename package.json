@@ -8,7 +8,8 @@
   "bin": "bin/stub-cli.js",
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "README.md"
   ],
   "analytics-descriptor": {
     "input": "./src/example/example-schema.yml",
