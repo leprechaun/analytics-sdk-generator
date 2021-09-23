@@ -29,12 +29,18 @@ pipelines:
       - tests:
           jobs:
             tests:
+              tabs:
+                coverage: ./coverage/lcov-report/index.html
               tasks:
                 - script: |
                     ./auto/test --coverage
                     docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
                 - script: |
                     ./auto/clean-up || true
+              artifacts:
+                - test:
+                    source: coverage/
+                    destination: ./coverage/
             audit:
               tasks:
                 - script: |

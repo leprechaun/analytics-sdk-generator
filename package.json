@@ -27,6 +27,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "jest-xunit": "^1.0.11",
     "yaml": "^1.10.2",
     "yargs": "^17.1.1"
   },
