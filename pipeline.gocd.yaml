@@ -27,6 +27,12 @@ pipelines:
     stages:
       - tests:
           jobs:
+            tests:
+              tasks:
+                - script: |
+                    ./auto/test --coverage
+                - script: |
+                    ./auto/clean-up || true
             audit:
               tasks:
                 - script: |
