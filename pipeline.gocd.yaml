@@ -113,4 +113,4 @@ pipelines:
                     trap finish EXIT
 
                     ./auto/build
-                    ./auto/yarn publish --new-version "$(echo $GO_PIPELINE_LABEL | awk -F '-' '{print $1}')"
+                    ./auto/publish --new-version "$(echo $GO_PIPELINE_LABEL | awk -F '-' '{print $1}')"
