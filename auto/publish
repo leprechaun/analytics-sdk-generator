@@ -2,4 +2,4 @@
 
 echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
 
-./auto/yarn publish ${@}
+./auto/yarn publish --no-git-tag-version ${@}
