@@ -4,7 +4,7 @@
   "description": "Generates an SDK from an analytics descriptor file",
   "main": "dist/bin/cli.js",
   "author": "leprechaun",
-  "license": "MIT",
+  "license": "GPL-3.0-or-later",
   "bin": "bin/stub-cli.js",
   "files": [
     "dist",
