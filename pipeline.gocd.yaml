@@ -24,6 +24,7 @@ pipelines:
     secure_variables:
       GO_AUTOMATION_PASSWORD: "AES:+heX4S6WsUXSqPxj5nNOoQ==:9jXtfK+GoUYDpS7mvGGWmA=="
       GITHUB_AUTOMATION_PASSWORD: "AES:EwOyEBf7z5d8VzVua75pEg==:LZhYZmLP7OR2Vf+NwirNlTCYCmptgbSRRqD3kWjjYlXxxCeSZGYyX07ZIcgMpfhV"
+      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
     stages:
       - tests:
           jobs:
@@ -73,6 +74,8 @@ pipelines:
         destination: ./
 
     environment_variables: {}
+    secure_variables:
+      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
     stages:
       - package:
           tasks:
@@ -98,6 +101,8 @@ pipelines:
         pipeline: analytics-sdk-generator-build
         stage: package
     environment_variables: {}
+    secure_variables:
+      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
     stages:
       - publish:
           jobs:
