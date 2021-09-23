@@ -5,19 +5,7 @@ screen({})
 tracks.CompanyProfileCompleted(
   {
     companyType: 'llc',
-    hasAddress: true
-  },
-  {
-    feature: "Account",
-    widget: "PoliciesPrompt",
-    element: "Accept Button",
-    action: "Click"
-  }
-)
-
-tracks.CompanyProfileCompleted(
-  {
-    companyType: 'llc',
-    hasAddress: true
+    hasAddress: true,
+    sectors: ["F&B"]
   }
 )
