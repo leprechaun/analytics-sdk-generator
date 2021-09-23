@@ -90,7 +90,7 @@ pipelines:
                 trap finish EXIT
 
                 ./auto/build
-                ./auto/yarn publish --new-version ${GO_PIPELINE_LABEL} --tag beta
+                ./auto/publish --new-version ${GO_PIPELINE_LABEL} --tag beta
 
   analytics-sdk-generator-publish:
     group: analytics-sdk-generator
