@@ -25,6 +25,7 @@ pipelines:
       GO_AUTOMATION_PASSWORD: "AES:+heX4S6WsUXSqPxj5nNOoQ==:9jXtfK+GoUYDpS7mvGGWmA=="
       GITHUB_AUTOMATION_PASSWORD: "AES:EwOyEBf7z5d8VzVua75pEg==:LZhYZmLP7OR2Vf+NwirNlTCYCmptgbSRRqD3kWjjYlXxxCeSZGYyX07ZIcgMpfhV"
       NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
+      CC_TEST_REPORTER_ID: "AES:TcEozrA1arnS51Y7SdtIWQ==:k+dhG+mjd2i/REqTvuOKhmggZA4VZbr/WLmd3KVvbN1dfCMPO7RMRAdOcBPTqwnXDD0vwoKnD0LCoG2B1eeJW3qYcCu4C2fogU1lKKP6+5w="
     stages:
       - tests:
           jobs:
@@ -33,7 +34,9 @@ pipelines:
                 coverage: ./coverage/lcov-report/index.html
               tasks:
                 - script: |
+                    ./auto/code-climate-reporter before-build
                     ./auto/test --coverage
+                    ./auto/code-climate-reporter after-build
                     docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
                 - script: |
                     ./auto/clean-up || true

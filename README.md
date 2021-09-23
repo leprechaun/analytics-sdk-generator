@@ -1,5 +1,7 @@
 # Analytics-SDK Generator
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/maintainability)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/test_coverage)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/test_coverage)
+
 This project is a convenient for developers, data analysts and engineers alike.
 
 It takes in a yaml file describing a mobile application and the analytics events that should be sent, and generates a corresponding type-checked SDK.
