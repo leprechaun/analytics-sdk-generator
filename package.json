@@ -1,0 +1,36 @@
+{
+  "name": "packaging-test-analytics-sdk-test",
+  "version": "0.0.18-b3107bf7",
+  "description": "Generates an SDK from an analytics descriptor file",
+  "main": "dist/bin/cli.js",
+  "author": "leprechaun",
+  "license": "MIT",
+  "bin": "bin/stub-cli.js",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "analytics-descriptor": {
+    "input": "./src/example/example-schema.yml",
+    "output": "./output",
+    "implementation": "./src/example/example-implementation"
+  },
+  "peerDependencies": {
+    "typescript": "^4"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.24",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.4",
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "yaml": "^1.10.2",
+    "yargs": "^17.1.1"
+  },
+  "scripts": {
+    "test": "jest ./src/*.test.ts",
+    "build": "tsc --build"
+  }
+}

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+./auto/yarn build
+docker run -v `pwd`:/app/ alpine chown -R $(id -u):$(id -g) /app/dist

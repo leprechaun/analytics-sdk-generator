@@ -1,0 +1,123 @@
+application:
+  name: MyApplication
+  version: 0.1.0-snapshot
+
+screens:
+  Splash:
+    description: Screen displayed while the app is loading
+    links:
+      - ValueProposition
+  ValueProposition:
+    description: Swipable, and skippable, carousel like screen that shows why people should use our app
+    features:
+      - Onboarding
+    links:
+      - Login
+    tracks:
+      - SkipValueProp
+    required:
+      - title
+    properties:
+      title:
+        type: string
+  Login:
+    description: Screen that prompts for login, forwards to a social login provider
+    features:
+      - Onboarding
+    tracks:
+      - LoginInitiated
+      - LoginFailed
+      - LoginSuccess
+    links:
+      - UserProfile
+  UserProfile:
+    description: Screen where the user can fill in their personal information
+    features:
+      - Onboarding
+      - Account
+    links:
+      - CompanyProfile
+    tracks:
+      - UserProfileCompleted
+  CompanyProfile:
+    description: laksjdlkjasdkljsd
+    features:
+      - Onboarding
+      - Account
+    links:
+      - FirstFeatureLanding
+      - SecondFeatureLanding
+    tracks:
+      - CompanyProfileCompleted
+
+  FirstFeatureLanding: {}
+  SecondFeatureLanding: {}
+
+tracks:
+  SkipValueProp:
+    description: Indicates that the user pressed the skip button on a particular value proposition
+    required:
+      - title
+    properties:
+      title:
+        type: string
+  LoginInitiated:
+    description: Indicates that the user intiated a login, we should expect a success, cancellation, or failure shortly
+    required:
+      - provider
+    properties:
+      provider:
+        $ref: "#/$defs/login_provider"
+  LoginFailed:
+    description: Indicates the login has failed
+    required:
+      - provider
+
+    properties:
+      provider:
+        $ref: "#/$defs/login_provider"
+      reason:
+        type: string
+  LoginSuccess:
+    description: Indicates the login has succeeded
+    required:
+      - provider
+    properties:
+      provider:
+        $ref: "#/$defs/login_provider"
+
+  UserProfileCompleted: {}
+  CompanyProfileCompleted:
+    description: Indicates the user has completed a company profile
+    required:
+      - companyType
+      - sectors
+    properties:
+      hasAddress:
+        type: boolean
+      companyType:
+        type: string
+        enum:
+          - llc
+          - corporation
+      sectors:
+        type: array
+        items:
+          $ref: "#/$defs/Sector"
+
+traits:
+  test:
+    $ref: "#/$defs/login_provider"
+$defs:
+  Sector:
+    type: string
+    enum:
+      - Retail
+      - IT
+      - F&B
+  login_provider:
+    type: string
+    enum:
+      - auth0
+      - facebook
+      - apple

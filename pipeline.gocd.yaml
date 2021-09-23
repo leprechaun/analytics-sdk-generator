@@ -1,0 +1,111 @@
+format_version: 2
+
+pipelines:
+  analytics-sdk-generator-test:
+    group: analytics-sdk-generator
+    label_template: "${git-analytics-sdk-generator[:8]}"
+    lock_behavior: unlockWhenFinished
+    timer:
+      spec: "* * * * * ? */15"
+      only_on_changes: yes
+    materials:
+      git-analytics-sdk-generator:
+        plugin_configuration:
+          id: git.fb
+          version: 1.3.5
+        options:
+          url: https://github.com/leprechaun/analytics-sdk-generator.git
+          branchwhitelist: master,test-*
+        destination: ./
+
+    environment_variables:
+      GO_AUTOMATION_USER: automaton
+      GITHUB_AUTOMATION_USER: gocd-service-account
+    secure_variables:
+      GO_AUTOMATION_PASSWORD: "AES:+heX4S6WsUXSqPxj5nNOoQ==:9jXtfK+GoUYDpS7mvGGWmA=="
+      GITHUB_AUTOMATION_PASSWORD: "AES:EwOyEBf7z5d8VzVua75pEg==:LZhYZmLP7OR2Vf+NwirNlTCYCmptgbSRRqD3kWjjYlXxxCeSZGYyX07ZIcgMpfhV"
+    stages:
+      - tests:
+          jobs:
+            audit:
+              tasks:
+                - script: |
+                    ./auto/clean-up || true
+                - script: |
+                    AUDIT_RESULT="$(./auto/audit --json --groups dependencies --level moderate)"
+                    export EXIT_CODE=$?
+
+                    set -e
+
+                    echo "$AUDIT_RESULT" | jq .
+
+                    DEPENDENCIES="$(echo "$AUDIT_RESULT" | jq .data.dependencies)"
+                    LOW="$(echo "$AUDIT_RESULT" | jq .data.vulnerabilities.low)"
+                    MODERATE="$(echo "$AUDIT_RESULT" | jq .data.vulnerabilities.moderate)"
+                    HIGH="$(echo "$AUDIT_RESULT" | jq .data.vulnerabilities.high)"
+                    CRITICAL="$(echo "$AUDIT_RESULT" | jq .data.vulnerabilities.critical)"
+
+                    echo "$GH_STATUS_DESCRIPTION"
+
+                    exit $EXIT_CODE
+
+  analytics-sdk-generator-build:
+    group: analytics-sdk-generator
+    label_template: "0.1.${COUNT}-${upstream}"
+    lock_behavior: unlockWhenFinished
+    materials:
+      upstream:
+        pipeline: analytics-sdk-generator-test
+        stage: tests
+      git-analytics-sdk-generator:
+        plugin_configuration:
+          id: git.fb
+          version: 1.3.5
+        options:
+          url: https://github.com/leprechaun/analytics-sdk-generator.git
+          branchwhitelist: master,test-*
+        destination: ./
+
+    environment_variables: {}
+    stages:
+      - package:
+          tasks:
+            - script: |
+               set -e
+               function finish {
+                  EXIT_CODE=$?
+                  docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
+                  ./auto/clean-up || true
+                  exit $EXIT_CODE
+                }
+                trap finish EXIT
+
+                ./auto/build
+                ./auto/yarn publish --new-version ${GO_PIPELINE_LABEL} --tag beta
+
+  analytics-sdk-generator-publish:
+    group: analytics-sdk-generator
+    label_template: "${upstream}"
+    lock_behavior: unlockWhenFinished
+    materials:
+      upstream:
+        pipeline: analytics-sdk-generator-build
+        stage: package
+    environment_variables: {}
+    stages:
+      - publish:
+          jobs:
+            publish:
+              tasks:
+                - script: |
+                   set -e
+                   function finish {
+                      EXIT_CODE=$?
+                      docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
+                      ./auto/clean-up || true
+                      exit $EXIT_CODE
+                    }
+                    trap finish EXIT
+
+                    ./auto/build
+                    ./auto/yarn publish --new-version "$(echo $GO_PIPELINE_LABEL | awk -F '-' '{print $1}')"
