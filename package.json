@@ -11,6 +11,28 @@
     "bin",
     "README.md"
   ],
+  "keywords": [
+    "promise",
+    "async",
+    "UnhandledPromiseRejectionWarning",
+    "PromiseRejectionHandledWarning"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leprechaun/analytics-sdk-generator.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leprechaun/analytics-sdk-generator/issues"
+  },
+  "keywords": [
+    "analytics",
+    "validation",
+    "json-schema",
+    "segment",
+    "rudderstack",
+    "AST",
+    "code-generation"
+  ],
   "analytics-descriptor": {
     "input": "./src/example/example-schema.yml",
     "output": "./output",
