@@ -99,6 +99,7 @@ pipelines:
       NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
     stages:
       - publish:
+          approval: manual
           jobs:
             publish:
               tasks:
