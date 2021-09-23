@@ -1,5 +1,5 @@
 {
-  "name": "packaging-test-analytics-sdk-test",
+  "name": "analytics-sdk-generator",
   "version": "0.0.18-b3107bf7",
   "description": "Generates an SDK from an analytics descriptor file",
   "main": "dist/bin/cli.js",
