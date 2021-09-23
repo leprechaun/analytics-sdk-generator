@@ -6,7 +6,17 @@ It takes in a yaml file describing a mobile application and the analytics events
 
 ## Try it out
 
+### Installing
+
 ```
+yarn add analytics-sdk-generator
+yarn analytics-sdk-generator transliterate --output ./output --input ./src/example/example-schema.yml
+```
+
+### Locally
+
+```
+# git clone ...
 yarn install
 yarn ts-node src/bin/cli.ts transliterate \
   --input src/example/example-schema.yml \
