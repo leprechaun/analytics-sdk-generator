@@ -1,4 +1,4 @@
-import BaseType, { ObjectType, NamedType } from './Types'
+import BaseType, { TypeDefinition, ObjectType, NamedType, ObjectDefinition, ObjectProperties } from './Types'
 
 export default class TrackingPlan {
   features: Feature[]
@@ -40,7 +40,7 @@ export default class TrackingPlan {
       this.defs.push(
         new NamedType(
           defName,
-          BaseType.toSpecificType(defs[defName]),
+          BaseType.toSpecificType(defs[defName] as TypeDefinition),
           defs[defName].description
         )
       )
@@ -170,10 +170,10 @@ export class Event {
     this.name = definition.name || definition.key
     this.properties = BaseType.toSpecificType({
       type: "object",
-      properties: definition.properties || {},
+      properties: {} as ObjectProperties,
       required: definition.required || [],
       additionalProperties: definition.additionalProperties || false
-    }) as ObjectType
+    } as ObjectDefinition) as ObjectType
 
     if('description' in definition) {
       this.description = definition.description

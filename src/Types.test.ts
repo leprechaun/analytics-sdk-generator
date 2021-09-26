@@ -13,7 +13,7 @@ describe(BaseType, () => {
           items: {
             "$ref": "SomeReference"
           }
-        }) as types.ArrayType
+        } as types.ArrayDefinition) as types.ArrayType
 
         expect(t).toBeInstanceOf(types.ArrayType)
         expect(t.type).toBeInstanceOf(types.TypeReference)
@@ -40,7 +40,7 @@ describe(BaseType, () => {
           }
         },
         required: ['thing']
-      }) as types.ObjectType
+      } as types.ObjectDefinition) as types.ObjectType
 
       it('understands objects', () => {
         expect(t).toBeInstanceOf(types.ObjectType)
@@ -56,7 +56,7 @@ describe(BaseType, () => {
         it('casts the correct types', () => {
           expect(t.properties[0].type).toBeInstanceOf(types.StringType)
           expect(t.properties[1].type).toBeInstanceOf(types.TypeReference)
-          expect(t.properties[2].type).toBeInstanceOf(types.UnionType)
+          expect(t.properties[2].type).toBeInstanceOf(types.Constant)
         })
 
         it('flags required properties as such', () => {
@@ -69,7 +69,7 @@ describe(BaseType, () => {
 
     describe('Oneof', () => {
       it('understands unions of varying types', () => {
-        expect(BaseType.toSpecificType({
+        const typed = BaseType.toSpecificType({
           'oneOf': [
             {
               'type': "string"
@@ -78,18 +78,14 @@ describe(BaseType, () => {
               '$ref': "SomeReference"
             }
           ]
-        })).toBeInstanceOf(types.UnionType)
+        })
 
-        expect((BaseType.toSpecificType({
-          'oneOf': [
-            {
-              'type': "string"
-            },
-            {
-              '$ref': "SomeReference"
-            }
-          ]
-        }) as types.UnionType).options).toEqual([new types.StringType({type: "string"}), new types.TypeReference({"$ref": "SomeReference"})])
+        expect(typed).toBeInstanceOf(types.UnionType)
+
+        expect((typed as types.UnionType).options).toEqual([
+          new types.StringType({type: "string"}),
+          new types.TypeReference({"$ref": "SomeReference"})
+        ])
       })
     })
   })
@@ -134,7 +130,7 @@ describe(BaseType, () => {
         expect((BaseType.toSpecificType({
           'type': 'string',
           'format': 'date'
-        }) as types.StringType).format).toEqual('date')
+        } as types.AnyStringDefinition) as types.StringType).format).toEqual('date')
       })
 
 
@@ -151,13 +147,6 @@ describe(BaseType, () => {
         expect(BaseType.toSpecificType({
           'type': 'number'
         })).toBeInstanceOf(types.NumberType)
-      })
-
-      it('sets format on strings', () => {
-        expect((BaseType.toSpecificType({
-          'type': 'number',
-          'format': 'integer'
-        }) as types.NumberType).format).toEqual('integer')
       })
 
       it('doesnt return a Number when it should be union', () => {

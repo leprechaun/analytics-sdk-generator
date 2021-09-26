@@ -1,49 +1,93 @@
 import ts, { factory } from 'typescript'
 
+export type ObjectProperties = {[key: string]: TypeDefinition}
+
+export type Description = {
+  description?: string
+}
+
+export type EnumOption = string | number // should really be any literal
+
+// Enums
+export type Enum = {
+  enum?: EnumOption[]
+}
+
+export type Format = {
+  format: string
+}
+
+export type ReferenceDefinition = {
+  $ref: string
+}
+
+export type ObjectDefinition = {
+  type: 'object'
+  properties: ObjectProperties
+  required?: string[]
+  additionalProperties?: boolean | TypeDefinition
+} & Description & Enum
+
+export type StringDefinition = {
+  type: 'string'
+  format?: string
+} & Description & Enum
+
+export type NumberDefinition = {
+  type: 'number' | 'integer'
+  format?: string
+} & Description & Enum
+
+export type BooleanDefinition = {
+  type: 'boolean',
+} & Description & Enum
+
+export type ArrayDefinition = {
+  type: 'array',
+  items: TypeDefinition
+} & Description & Enum
+
+export type UnionDefinition = {
+  oneOf: TypeDefinition[]
+} & Description
+
+export type Enumerated<T extends SimpleDefinition> = Omit<T, "enum"> & Required<Enum>
+export type NonEnumerated<T extends SimpleDefinition> = Omit<T, "enum">
+
+export type FormattedStringDefinition = Omit<StringDefinition, "format"> & Required<Format>
+export type NonFormattedStringDefinition = Omit<StringDefinition, "format">
+
+export type AnyStringDefinition = FormattedStringDefinition | NonFormattedStringDefinition
+
+export type PrimitiveDefinition = AnyStringDefinition | NumberDefinition | BooleanDefinition
+
+export type ComplexDefinition = ObjectDefinition | ArrayDefinition
+
+export type SimpleDefinition = PrimitiveDefinition | ComplexDefinition
+
+
+export type EnumeratedSimpleDefinition = Enumerated<SimpleDefinition>
+
+export type NonEnumeratedSimpleDefinition = NonEnumerated<SimpleDefinition>
+
+export type AnySimpleDefinition = EnumeratedSimpleDefinition | NonEnumeratedSimpleDefinition
+
+export type AliasDefinition = UnionDefinition | ReferenceDefinition
+
+export type TypeDefinition = AnySimpleDefinition | AliasDefinition
+
 export default class BaseType {
   constructor(definition: any) {
     Object.assign(this, definition)
   }
 
-  static toSpecificType(definition: any) {
+  static toSpecificType(definition: TypeDefinition) {
     if('type' in definition) {
-      if(!('enum' in definition)) {
-        switch(definition.type) {
-          case 'string':
-            return new StringType(definition)
-
-          case 'number':
-            return new NumberType(definition)
-
-          case 'boolean':
-            return new BooleanType(definition)
-
-          case 'object':
-            return new ObjectType(definition)
-
-          case 'array':
-            return new ArrayType(definition)
-        }
-      } else {
-        if('type' in definition) {
-          switch(definition.type) {
-            case 'string':
-              if(definition.enum.length > 1) {
-                return new UnionType({
-                  options: definition.enum.map((v: any) => new Constant(v as string))
-                })
-              } else {
-                return new Constant(definition.enum[0] as string)
-              }
-          }
-        }
-      }
+      return SimpleType.toSpecificType(definition as SimpleDefinition)
     } else if('$ref' in definition) {
-      return new TypeReference(definition)
+      return new TypeReference(definition as ReferenceDefinition)
     } else if('oneOf' in definition) {
-      return new UnionType({
-        options: definition.oneOf.map((t: any) => BaseType.toSpecificType(t))
-      })
+      return UnionType.toSpecificType(definition as UnionDefinition)
     }
   }
 
@@ -52,8 +96,108 @@ export default class BaseType {
   }
 }
 
-export class PrimitiveType extends BaseType {
+class SimpleType extends BaseType {
+  static toSpecificType(definition: SimpleDefinition) {
+    if('enum' in definition) {
+      return EnumeratedSimpleType.toSpecificType(definition as EnumeratedSimpleDefinition)
+    } else {
+      return NonEnumeratedSimpleType.toSpecificType(definition as NonEnumeratedSimpleDefinition)
+    }
+  }
+}
 
+export class EnumeratedSimpleType extends BaseType {
+  static toSpecificType(definition: EnumeratedSimpleDefinition): UnionType | Constant {
+    if(definition.enum.length == 0) {
+      throw new Error("Enums must have at least one option")
+    } else if( definition.enum.length == 1 ) {
+      return new Constant(definition.enum[0])
+    } else {
+      return new UnionType({options: definition.enum.map( v => new Constant(v))})
+    }
+  }
+}
+
+export class NonEnumeratedSimpleType extends BaseType {
+  static toSpecificType(definition: NonEnumeratedSimpleDefinition): SimpleType {
+    switch(definition.type) {
+      case 'number':
+      case 'integer':
+        return new NumberType(definition as NumberDefinition)
+
+      case 'string':
+        return AnyStringType.toSpecificType(definition as AnyStringDefinition)
+
+      case 'boolean':
+        return new BooleanType(definition as BooleanDefinition)
+
+       case 'object':
+        return new ObjectType(definition as ObjectDefinition)
+
+      case 'array':
+        return new ArrayType(definition as ArrayDefinition)
+    }
+  }
+}
+
+
+
+
+
+export class PrimitiveType extends BaseType {
+  static toSpecificType(definition: PrimitiveDefinition) {
+    switch(definition.type) {
+      case 'number':
+      case 'integer':
+        return new NumberType(definition as NumberDefinition)
+      case 'string':
+        return AnyStringType.toSpecificType(definition as AnyStringDefinition)
+      case 'boolean':
+        return new BooleanType(definition as BooleanDefinition)
+    }
+  }
+}
+
+export class AnyStringType extends PrimitiveType {
+  static toSpecificType(definition: AnyStringDefinition) {
+    if('format' in definition) {
+      return FormattedStringType.toSpecificType(definition as FormattedStringDefinition)
+    } else {
+      return new StringType(definition as NonFormattedStringDefinition)
+    }
+  }
+}
+
+export class StringType extends AnyStringType {
+  format: string
+
+  toAST(options?: {}) {
+    return factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
+  }
+}
+
+export class FormattedStringType extends AnyStringType {
+  static formats: {
+    [key: string]: typeof FormattedStringType
+  } = {}
+
+  static addFormat(key: string, format: typeof FormattedStringType) {
+    this.formats[key] = format
+  }
+
+  static toSpecificType(definition: FormattedStringDefinition) {
+    if(definition.format in this.formats) {
+      return new this.formats[definition.format](definition)
+    } else {
+      return new StringType(definition)
+    }
+  }
+}
+
+export class DateFormattedStringType extends FormattedStringType {
+  toAST(options: ToASTOptions) {
+    return null as any
+  }
 }
 
 export class NumberType extends PrimitiveType {
@@ -70,21 +214,13 @@ export class BooleanType extends PrimitiveType {
   }
 }
 
-export class StringType extends PrimitiveType {
-  format: string
-
-  toAST(options?: {}) {
-    return factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
-  }
-}
-
 export class ComplexType extends BaseType {
 }
 
 export class ArrayType extends ComplexType {
   type: BaseType
 
-  constructor(definition: any) {
+  constructor(definition: ArrayDefinition) {
     super({})
     this.type = BaseType.toSpecificType(definition.items)
   }
@@ -120,7 +256,6 @@ export class ObjectProperty {
       identifier = factory.createIdentifier(this.name)
     }
 
-
     return factory.createPropertySignature(
       undefined,
       identifier,
@@ -137,7 +272,7 @@ export class ObjectProperty {
 export class ObjectType extends ComplexType  {
   properties: ObjectProperty[]
 
-  constructor(definition: any) {
+  constructor(definition: ObjectDefinition) {
     super({})
 
     if(!('required' in definition)) {
@@ -145,7 +280,9 @@ export class ObjectType extends ComplexType  {
     }
 
     this.properties = Object.entries(definition.properties).map( p => {
-      return new ObjectProperty(p[0], BaseType.toSpecificType(p[1]), definition.required.includes(p[0]))
+      const name = p[0]
+      const def = p[1]
+      return new ObjectProperty(name, BaseType.toSpecificType(def), definition.required.includes(name))
     })
   }
 
@@ -175,7 +312,7 @@ export class ObjectType extends ComplexType  {
 export class TypeReference extends BaseType {
   reference: string
 
-  constructor(definition) {
+  constructor(definition: ReferenceDefinition) {
     super({})
     this.reference = definition['$ref']
   }
@@ -224,9 +361,21 @@ export class Constant extends BaseType {
 
 export class UnionType extends BaseType {
   options: any[]
-  constructor(definition) {
+  constructor(definition: {options: any}) {
     super({})
     this.options = definition.options
+  }
+
+  static toSpecificType(definition: UnionDefinition) {
+    if(definition.oneOf.length == 0) {
+      throw new Error("Unions must have atleast one option")
+    } else if (definition.oneOf.length == 1){
+      return new Constant(definition.oneOf[0])
+    } else {
+      return new UnionType({
+        options: definition.oneOf.map( o => BaseType.toSpecificType(o) )
+      })
+    }
   }
 
   toAST(options?: {importMappings?: {[key: string]: string[]}}) {
