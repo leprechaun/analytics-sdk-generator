@@ -370,7 +370,7 @@ export class UnionType extends BaseType {
     if(definition.oneOf.length == 0) {
       throw new Error("Unions must have atleast one option")
     } else if (definition.oneOf.length == 1){
-      return new Constant(definition.oneOf[0])
+      return BaseType.toSpecificType(definition.oneOf[0])
     } else {
       return new UnionType({
         options: definition.oneOf.map( o => BaseType.toSpecificType(o) )

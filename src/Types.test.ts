@@ -35,6 +35,9 @@ describe(BaseType, () => {
             oneOf: [
               {
                 type: "string"
+              },
+              {
+                type: "number"
               }
             ]
           }
@@ -56,7 +59,7 @@ describe(BaseType, () => {
         it('casts the correct types', () => {
           expect(t.properties[0].type).toBeInstanceOf(types.StringType)
           expect(t.properties[1].type).toBeInstanceOf(types.TypeReference)
-          expect(t.properties[2].type).toBeInstanceOf(types.Constant)
+          expect(t.properties[2].type).toBeInstanceOf(types.UnionType)
         })
 
         it('flags required properties as such', () => {
@@ -86,6 +89,18 @@ describe(BaseType, () => {
           new types.StringType({type: "string"}),
           new types.TypeReference({"$ref": "SomeReference"})
         ])
+      })
+
+      it('reverts to a simpler type when theres only one option', () => {
+        const typed = BaseType.toSpecificType({
+          'oneOf': [
+            {
+              'type': "string"
+            }
+          ]
+        })
+
+        expect(typed).toBeInstanceOf(types.StringType)
       })
     })
   })
