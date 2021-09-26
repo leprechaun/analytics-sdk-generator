@@ -51,8 +51,8 @@ export default class TransliterateCommand {
     return new TrackingPlan(contents)
   }
 
-  write(pathnodes: {path: string[], nodes: ts.Node[]}[]) {
-    const paths = pathnodes.map( pn => {
+  groupByPath(pathnodes: {path: string[], nodes: ts.Node[]}[]) {
+    return pathnodes.map( pn => {
       pn.path.unshift(this.args.output)
       return {
         path: path.join(...pn.path) + '.ts',
@@ -66,6 +66,10 @@ export default class TransliterateCommand {
 
       return accumulated
     }, {})
+  }
+
+  write(pathnodes: {path: string[], nodes: ts.Node[]}[]) {
+    const paths = this.groupByPath(pathnodes)
 
     for(const filepath in paths) {
       const nodes = factory.createNodeArray(paths[filepath]);
