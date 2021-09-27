@@ -51,6 +51,34 @@ pipelines:
                 - script: |
                     ./auto/audit --json --groups dependencies --level moderate
 
+  analytics-sdk-generator-extra-tests:
+    group: analytics-sdk-generator
+    label_template: "${upstream}"
+    lock_behavior: unlockWhenFinished
+    materials:
+      upstream:
+        pipeline: analytics-sdk-generator-test
+        stage: tests
+      git-analytics-sdk-generator:
+        plugin_configuration:
+          id: git.fb
+          version: 1.3.5
+        options:
+          url: https://github.com/leprechaun/analytics-sdk-generator.git
+          branchwhitelist: master,test-*
+        destination: ./
+
+    environment_variables: {}
+    stages:
+      - mutation:
+          tasks:
+            - script: |
+                ./auto/mutation
+          artifacts:
+            - test:
+                source: reports/
+                destination: ./reports/
+
   analytics-sdk-generator-build:
     group: analytics-sdk-generator
     label_template: "0.1.${COUNT}-${upstream}"

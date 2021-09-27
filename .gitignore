@@ -2,3 +2,6 @@ dist
 node_modules
 output
 yarn-error.log
+
+# stryker temp files
+.stryker-tmp
