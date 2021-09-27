@@ -1,9 +1,9 @@
 import ts from 'typescript'
 import * as functions from './Functions'
-import * as eventTypes from './TrackingPlan'
+import * as EventTypes from './EventTypes'
 
 describe(functions.AnalyticsFunction, () => {
-  const track = new eventTypes.Track({
+  const track = new EventTypes.Track({
     key: "Test&Event",
     name: "Test And Event",
     properties: {
@@ -15,6 +15,9 @@ describe(functions.AnalyticsFunction, () => {
             enum: ['one', 'two', 'three']
           }
         }
+      },
+      anotherthing: {
+        type: 'string'
       }
     }
   })
@@ -23,16 +26,37 @@ describe(functions.AnalyticsFunction, () => {
   const ast = fn.toAST({})
 
   it('returns an arrow function', () => {
-    expect(ast.constructor.name).toEqual('NodeObject')
-    expect(ast.kind).toEqual(210)
+    expect(ts.isArrowFunction(ast)).toBeTruthy()
   })
 
   describe('function', () => {
     describe('input', () => {
       describe('properties', () => {
+        const props = ast.parameters[0] as any
+
         it('takes `props` as first required argument', () => {
-          expect((ast.parameters[0].name as any).escapedText).toEqual('props')
+          expect((props.name as ts.Identifier).escapedText).toEqual('props')
           expect(ast.parameters[0].questionToken).toBeUndefined()
+        })
+
+        it('is an object', () => {
+          expect(props.type).toBeTruthy()
+          expect(ts.isTypeNode(props.type)).toBeTruthy()
+          expect(props.kind).toEqual(161)
+        })
+
+        describe('properties properties', () => {
+          it('has thing', () => {
+            const thing = props.type.members[0]
+            expect(thing.name.escapedText).toEqual('thing')
+            expect(thing.type.kind).toEqual(178)
+          })
+
+          it('has anotherthing', () => {
+            const thing = props.type.members[1]
+            expect(thing.name.escapedText).toEqual('anotherthing')
+            expect(thing.type.kind).toEqual(147)
+          })
         })
       })
 
@@ -64,7 +88,7 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('is an enum\'ish when there are 2 or more options', () => {
-            const track = new eventTypes.Screen({
+            const track = new EventTypes.Screen({
               key: "Test&Event",
               name: "Test And Event",
               features: [
@@ -85,12 +109,12 @@ describe(functions.AnalyticsFunction, () => {
             track.features.push(
               {
                 name: "SomeFeatureName"
-              } as eventTypes.Feature
+              } as EventTypes.Feature
             )
             track.features.push(
               {
                 name: "AnotherFeature"
-              } as eventTypes.Feature
+              } as EventTypes.Feature
             )
 
             const fn = new functions.AnalyticsFunction(track)
@@ -115,7 +139,7 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('sets a constant when theres only one option', () => {
-            const track = new eventTypes.Screen({
+            const track = new EventTypes.Screen({
               key: "Test&Event",
               name: "Test And Event",
               features: [
@@ -136,7 +160,7 @@ describe(functions.AnalyticsFunction, () => {
             track.features.push(
               {
                 name: "SomeFeatureName"
-              } as eventTypes.Feature
+              } as EventTypes.Feature
             )
 
             const fn = new functions.AnalyticsFunction(track)
@@ -170,7 +194,7 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('is an enum\'ish when there are 2 or more options', () => {
-            const track = new eventTypes.Track({
+            const track = new EventTypes.Track({
               key: "Test&Event",
               name: "Test And Event",
               features: [
@@ -193,14 +217,14 @@ describe(functions.AnalyticsFunction, () => {
                 key: "SomeScreen",
                 name: "SomeScreen",
                 features: [{name:"SomeFeature"}]
-              } as eventTypes.Screen
+              } as EventTypes.Screen
             )
             track.screens.push(
               {
                 key: "AnotherScreen",
                 name: "AnotherScreen",
                 features: [{name:"AnotherFeature"}]
-              } as eventTypes.Screen
+              } as EventTypes.Screen
             )
 
             const fn = new functions.AnalyticsFunction(track)
@@ -227,7 +251,7 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('sets a constant when theres only one option', () => {
-            const track = new eventTypes.Track({
+            const track = new EventTypes.Track({
               key: "Test&Event",
               name: "Test And Event",
               features: [
@@ -250,7 +274,7 @@ describe(functions.AnalyticsFunction, () => {
                 key: "SomeScreen",
                 name: "SomeScreen",
                 features: [{name:"SomeFeature"}]
-              } as eventTypes.Screen
+              } as EventTypes.Screen
             )
 
             const fn = new functions.AnalyticsFunction(track)

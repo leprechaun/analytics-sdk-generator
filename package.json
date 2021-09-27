@@ -11,12 +11,6 @@
     "bin",
     "README.md"
   ],
-  "keywords": [
-    "promise",
-    "async",
-    "UnhandledPromiseRejectionWarning",
-    "PromiseRejectionHandledWarning"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/leprechaun/analytics-sdk-generator.git"
@@ -54,7 +48,7 @@
     "yargs": "^17.1.1"
   },
   "scripts": {
-    "test": "jest ./src/*.test.ts",
+    "test": "jest **/*.test.ts",
     "build": "tsc --build"
   }
 }

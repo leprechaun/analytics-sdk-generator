@@ -1,7 +1,8 @@
 import ts, {factory } from 'typescript'
 
-import { Event, EventType, Screen, Track } from './TrackingPlan'
-import BaseType, { ObjectType, ObjectProperty, Constant, TypeReference } from './Types'
+import { Screen, Track } from './EventTypes'
+import { PrintableDataType, ObjectType, ObjectProperty, Constant } from './Types'
+import TypeMapper from './TypeMapper'
 
 type ImportMapping = string[]
 
@@ -59,7 +60,6 @@ export class AnalyticsFunction {
       features: featureNames,
       screens: screenNames
     }
-
   }
 
   overwrites(options?: ToASTOptions) {
@@ -91,13 +91,13 @@ export class AnalyticsFunction {
     const uniqueSourceAttributeValues = this.uniqueFeaturesAndScreens()
 
     return ['feature', 'screen', 'widget', 'element', 'action'].map( name => {
-      let type: BaseType
+      let type: PrintableDataType
 
       const k = name + 's'
       if(!(k in uniqueSourceAttributeValues)) {
         return new ObjectProperty(
           name,
-          BaseType.toSpecificType({
+          TypeMapper.toSpecificType({
             'type': 'string'
           }),
           false
@@ -116,7 +116,7 @@ export class AnalyticsFunction {
           case 0:
             return new ObjectProperty(
               name,
-              BaseType.toSpecificType({
+              TypeMapper.toSpecificType({
                 "$ref": `#/$defs/${ref}`
               }),
               true
@@ -132,7 +132,7 @@ export class AnalyticsFunction {
           default:
             return new ObjectProperty(
               name,
-              BaseType.toSpecificType({
+              TypeMapper.toSpecificType({
                 type: 'string',
                 enum: uniqueSourceAttributeValues[k]
               }),

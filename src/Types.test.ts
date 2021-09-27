@@ -1,19 +1,25 @@
-import path from 'path'
-import fs from 'fs'
-import ts, { factory } from 'typescript'
+import TypeMapper from './TypeMapper'
+import * as types from './Types'
+import * as InputTypes from './InputTypes'
 
-import BaseType, * as types from './Types'
+describe(TypeMapper, () => {
+  describe("Unknown types", () => {
+    it('throws an error when I give it obvious garbage', () => {
+      expect( () => {
+        TypeMapper.toSpecificType({'asd': 'garbage'} as any as InputTypes.TypeDefinition)
+      }).toThrowError()
+    })
+  })
 
-describe(BaseType, () => {
   describe(types.ComplexType, () => {
     describe(types.ArrayType, () => {
       it('understands arrays', () => {
-        const t = BaseType.toSpecificType({
+        const t = TypeMapper.toSpecificType({
           type: "array",
           items: {
             "$ref": "SomeReference"
           }
-        } as types.ArrayDefinition) as types.ArrayType
+        } as InputTypes.ArrayDefinition) as types.ArrayType
 
         expect(t).toBeInstanceOf(types.ArrayType)
         expect(t.type).toBeInstanceOf(types.TypeReference)
@@ -22,7 +28,7 @@ describe(BaseType, () => {
     })
 
     describe(types.ObjectType, () => {
-      const t = BaseType.toSpecificType({
+      const t = TypeMapper.toSpecificType({
         type: "object",
         properties: {
           "thing": {
@@ -43,7 +49,7 @@ describe(BaseType, () => {
           }
         },
         required: ['thing']
-      } as types.ObjectDefinition) as types.ObjectType
+      } as InputTypes.ObjectDefinition) as types.ObjectType
 
       it('understands objects', () => {
         expect(t).toBeInstanceOf(types.ObjectType)
@@ -70,9 +76,9 @@ describe(BaseType, () => {
       })
     })
 
-    describe('Oneof', () => {
+    describe('oneOf', () => {
       it('understands unions of varying types', () => {
-        const typed = BaseType.toSpecificType({
+        const typed = TypeMapper.toSpecificType({
           'oneOf': [
             {
               'type': "string"
@@ -92,7 +98,7 @@ describe(BaseType, () => {
       })
 
       it('reverts to a simpler type when theres only one option', () => {
-        const typed = BaseType.toSpecificType({
+        const typed = TypeMapper.toSpecificType({
           'oneOf': [
             {
               'type': "string"
@@ -102,6 +108,14 @@ describe(BaseType, () => {
 
         expect(typed).toBeInstanceOf(types.StringType)
       })
+
+      it('throws an error when it is a union of 0 types', () => {
+        expect( () => {
+          TypeMapper.toSpecificType({
+            oneOf: []
+          })
+        }).toThrowError()
+      })
     })
   })
 
@@ -109,13 +123,13 @@ describe(BaseType, () => {
     describe(types.UnionType, () => {
       describe('String enums', () => {
         it('returns a UnionType with strings', () => {
-          expect(BaseType.toSpecificType({
+          expect(TypeMapper.toSpecificType({
             'type': 'string',
             'enum': ["one", "two"]
 
           })).toBeInstanceOf(types.UnionType)
 
-          expect((BaseType.toSpecificType({
+          expect((TypeMapper.toSpecificType({
             'type': 'string',
             'enum': ["one", "two"]
 
@@ -123,7 +137,7 @@ describe(BaseType, () => {
         })
 
         it('returns a constant when its one option of a simple type', () => {
-          const t = BaseType.toSpecificType({
+          const t = TypeMapper.toSpecificType({
             'type': 'string',
             'enum': ["one"]
           }) as types.Constant
@@ -131,26 +145,66 @@ describe(BaseType, () => {
           expect(t.type).toEqual('string')
           expect(t.value).toEqual("one")
         })
+
+        it('throws an error when there are no options', () => {
+          expect( () => {
+            TypeMapper.toSpecificType({
+              type: 'string',
+              enum: []
+            })
+          }).toThrowError()
+        })
       })
     })
 
     describe(types.StringType, () => {
       it('recognises strings', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           'type': 'string'
         })).toBeInstanceOf(types.StringType)
       })
 
-      it('sets format on strings', () => {
-        expect((BaseType.toSpecificType({
-          'type': 'string',
-          'format': 'date'
-        } as types.AnyStringDefinition) as types.StringType).format).toEqual('date')
+      describe(types.FormattedStringType, () => {
+        it('sets format on strings ti doesnt recognise', () => {
+          const typed = TypeMapper.toSpecificType({
+            'type': 'string',
+            'format': 'date'
+          } as InputTypes.AnyStringDefinition)
+
+          expect(
+            (typed  as types.StringType).format
+          ).toEqual('date')
+        })
+
+        it('supports date-time out of the box', () => {
+          const typed = TypeMapper.toSpecificType({
+            type: 'string',
+            format: 'date-time'
+          } as InputTypes.TypeDefinition)
+
+          expect(typed).toBeInstanceOf(types.DateFormattedStringType)
+        })
+
+        it('supports adding custom formatted types', () => {
+          class CustomType extends types.FormattedStringType {
+            toAST(options: {}) {
+              return []
+            }
+          }
+
+          TypeMapper.addStringFormat('custom', CustomType)
+
+          const typed = TypeMapper.toSpecificType({
+            type: 'string',
+            format: 'custom'
+          } as InputTypes.TypeDefinition)
+
+          expect(typed).toBeInstanceOf(CustomType)
+        })
       })
 
-
       it('doesnt return a String when it should be union', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           'type': 'string',
           'enum': ['v1', 'v2']
         })).not.toBeInstanceOf(types.StringType)
@@ -159,13 +213,13 @@ describe(BaseType, () => {
 
     describe(types.NumberType, () => {
       it('recognises numbers', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           'type': 'number'
         })).toBeInstanceOf(types.NumberType)
       })
 
       it('doesnt return a Number when it should be union', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           'type': 'number',
           'enum': [1, 2, 3]
         })).not.toBeInstanceOf(types.NumberType)
@@ -174,7 +228,7 @@ describe(BaseType, () => {
 
     describe(types.BooleanType, () => {
       it('recognises booleans', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           'type': 'boolean'
         })).toBeInstanceOf(types.BooleanType)
       })
@@ -182,7 +236,7 @@ describe(BaseType, () => {
 
     describe(types.TypeReference, () => {
       it('recognises $refs', () => {
-        expect(BaseType.toSpecificType({
+        expect(TypeMapper.toSpecificType({
           '$ref': "SomeType"
         })).toBeInstanceOf(types.TypeReference)
       })

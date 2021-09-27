@@ -1,9 +1,15 @@
-import BaseType, { TypeDefinition, ObjectType, NamedType, ObjectDefinition, ObjectProperties } from './Types'
+import * as EventTypes from './EventTypes'
+import TypeMapper from './TypeMapper'
+import { TypeDefinition } from './InputTypes'
+
+import {
+  NamedType,
+} from './Types'
 
 export default class TrackingPlan {
-  features: Feature[]
-  screens: Screen[]
-  tracks: Track[]
+  features: EventTypes.Feature[]
+  screens: EventTypes.Screen[]
+  tracks: EventTypes.Track[]
   defs: NamedType[]
   traits: NamedType[]
 
@@ -28,7 +34,7 @@ export default class TrackingPlan {
       this.traits.push(
         new NamedType(
           traitName,
-          BaseType.toSpecificType(traits[traitName]),
+          TypeMapper.toSpecificType(traits[traitName]),
           traits[traitName].description
         )
       )
@@ -40,7 +46,7 @@ export default class TrackingPlan {
       this.defs.push(
         new NamedType(
           defName,
-          BaseType.toSpecificType(defs[defName] as TypeDefinition),
+          TypeMapper.toSpecificType(defs[defName] as TypeDefinition),
           defs[defName].description
         )
       )
@@ -49,7 +55,7 @@ export default class TrackingPlan {
 
   parseScreens(screens) {
     for(const key in screens) {
-      const screen = new Screen({...screens[key], key})
+      const screen = new EventTypes.Screen({...screens[key], key})
 
       if('features' in screens[key]) {
         for(const featureName of screens[key]['features']) {
@@ -74,7 +80,7 @@ export default class TrackingPlan {
 
   parseTracks(tracks: any) {
     for(const key in tracks) {
-      const track = new Track({...tracks[key], key})
+      const track = new EventTypes.Track({...tracks[key], key})
 
       if('features' in tracks[key]) {
         for(const featureName of tracks[key]['features']) {
@@ -91,7 +97,7 @@ export default class TrackingPlan {
   getFeature(featureName: string) {
     const matchingFeatures = this.features.filter( f => f.name == featureName )
     if(matchingFeatures.length == 0) {
-      const feature = new Feature(featureName)
+      const feature = new EventTypes.Feature(featureName)
       this.features.push(feature)
       return feature
     } else {
@@ -115,106 +121,5 @@ export default class TrackingPlan {
     } else {
       return matchingScreens[0]
     }
-  }
-}
-
-export class Feature {
-  name: string
-  screens: Screen[]
-  tracks: Track[]
-
-  constructor(name: string) {
-    this.name = name
-    this.screens = []
-    this.tracks = []
-  }
-
-  addScreen(screen: Screen) {
-    this.screens.push(screen)
-  }
-
-  addTrack(track: Track) {
-    this.tracks.push(track)
-  }
-}
-
-export enum EventType {
-  screen = "screen",
-  track = "track"
-}
-
-export class Event {
-  type: EventType
-  key: string
-  name: string
-  description?: string
-  additionalProperties: boolean
-  loginRequired?: boolean
-  properties: ObjectType
-  features: Feature[]
-
-
-  constructor(definition) {
-    if(!('key' in definition)) {
-      throw new Error("'key' is required")
-    }
-
-    if(!('type' in definition)) {
-      throw new Error("'type' is required")
-    }
-
-    this.additionalProperties = definition.additionalProperties || false
-    this.loginRequired = definition.loginRequired
-    this.type = definition.type
-    this.key = definition.key
-    this.name = definition.name || definition.key
-    this.properties = BaseType.toSpecificType({
-      type: "object",
-      properties: {} as ObjectProperties,
-      required: definition.required || [],
-      additionalProperties: definition.additionalProperties || false
-    } as ObjectDefinition) as ObjectType
-
-    if('description' in definition) {
-      this.description = definition.description
-    }
-  }
-
-  escapeKey() {
-    return this.key.replace(" ","").replace("&", "n")
-  }
-}
-
-export class Screen extends Event {
-  type = EventType.screen
-  tracks: Track[]
-
-  constructor(definition) {
-    super({...definition, type: "screen"})
-
-    this.features = []
-    this.tracks = []
-  }
-}
-
-export class Track extends Event {
-  type = EventType.track
-  features: Feature[]
-  screens: Screen[]
-
-  constructor(definition) {
-    super({...definition, type: "track"})
-
-    this.features = []
-    this.screens = []
-  }
-
-  toScreenSpecific(screen: Screen) {
-    const t = new Track({...this, properties: {}})
-    t.features = screen.features
-    t.screens = [screen]
-    t.properties = this.properties
-
-    return t
   }
 }

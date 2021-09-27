@@ -1,7 +1,8 @@
 import ts, { factory } from 'typescript'
 
 import TrackingPlan from './TrackingPlan'
-import BaseType, { NamedType } from './Types'
+import TypeMapper from './TypeMapper'
+import { NamedType } from './Types'
 import * as functions from './Functions'
 
 export type FileNodesList = {
@@ -28,7 +29,7 @@ export default class Transliterator {
 
     nodes.push({
       path: ['shared-definitions'],
-      nodes: new NamedType("FeatureNames", BaseType.toSpecificType({
+      nodes: new NamedType("FeatureNames", TypeMapper.toSpecificType({
         type: 'string',
         enum: plan.features.map( f => f.name as string )
       }), "List of all the feature names").toAST()
@@ -36,7 +37,7 @@ export default class Transliterator {
 
     nodes.push({
       path: ['shared-definitions'],
-      nodes: new NamedType("ScreenNames", BaseType.toSpecificType({
+      nodes: new NamedType("ScreenNames", TypeMapper.toSpecificType({
         type: 'string',
         enum: plan.screens.map( s => s.name as string)
       }), "List of all the screen names").toAST()
