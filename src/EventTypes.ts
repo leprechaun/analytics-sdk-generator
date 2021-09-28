@@ -1,5 +1,5 @@
 import TypeMapper from './TypeMapper'
-import { ObjectDefinition } from './InputTypes'
+import { EventDefinition, TrackDefinition, ScreenDefinition, ObjectDefinition } from './InputTypes'
 import { ObjectType } from './Types'
 
 export class Feature {
@@ -22,10 +22,7 @@ export class Feature {
   }
 }
 
-export enum EventType {
-  screen = "screen",
-  track = "track"
-}
+export type EventType  = "screen" | "track"
 
 export class Event {
   type: EventType
@@ -38,7 +35,7 @@ export class Event {
   features: Feature[]
 
 
-  constructor(definition) {
+  constructor(definition: EventDefinition) {
     if(!('key' in definition)) {
       throw new Error("'key' is required")
     }
@@ -76,10 +73,10 @@ export class Event {
 }
 
 export class Screen extends Event {
-  type = EventType.screen
+  type: "screen"
   tracks: Track[]
 
-  constructor(definition) {
+  constructor(definition: ScreenDefinition) {
     super({...definition, type: "screen"})
 
     this.features = []
@@ -88,11 +85,11 @@ export class Screen extends Event {
 }
 
 export class Track extends Event {
-  type = EventType.track
+  type: "track"
   features: Feature[]
   screens: Screen[]
 
-  constructor(definition) {
+  constructor(definition: TrackDefinition) {
     super({...definition, type: "track"})
 
     this.features = []
@@ -100,7 +97,7 @@ export class Track extends Event {
   }
 
   toScreenSpecific(screen: Screen) {
-    const t = new Track({...this, properties: {}})
+    const t = new Track({key: this.key, name: this.name})
     t.features = screen.features
     t.screens = [screen]
     t.properties = this.properties

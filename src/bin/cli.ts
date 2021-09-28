@@ -2,7 +2,7 @@
 
 import yargs from 'yargs';
 
-import transliterate from '../commands/transliterate'
+import transliterate from './commands/transliterate'
 
 yargs(process.argv.slice(2))
   .scriptName('analytics-descriptor')

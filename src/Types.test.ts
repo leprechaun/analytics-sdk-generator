@@ -7,7 +7,7 @@ describe(TypeMapper, () => {
     it('throws an error when I give it obvious garbage', () => {
       expect( () => {
         TypeMapper.toSpecificType({'asd': 'garbage'} as any as InputTypes.TypeDefinition)
-      }).toThrowError()
+      }).toThrowError("Unknown type definition")
     })
   })
 
@@ -114,7 +114,7 @@ describe(TypeMapper, () => {
           TypeMapper.toSpecificType({
             oneOf: []
           })
-        }).toThrowError()
+        }).toThrowError("Unions must have atleast one option")
       })
     })
   })
@@ -152,7 +152,7 @@ describe(TypeMapper, () => {
               type: 'string',
               enum: []
             })
-          }).toThrowError()
+          }).toThrowError("Enums must have atleast one option")
         })
       })
     })
@@ -223,6 +223,12 @@ describe(TypeMapper, () => {
           'type': 'number',
           'enum': [1, 2, 3]
         })).not.toBeInstanceOf(types.NumberType)
+      })
+
+      it('casts integer as number', () => {
+        expect(TypeMapper.toSpecificType({
+          'type': 'integer'
+        })).toBeInstanceOf(types.NumberType)
       })
     })
 

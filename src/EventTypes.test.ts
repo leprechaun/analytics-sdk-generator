@@ -3,15 +3,19 @@ import * as types from './Types'
 import { Screen, Track } from './EventTypes'
 
 describe("EventTypes", () => {
+  it('sets type=screen on Screen', () => {
+    const thing = new Screen({key: "SomeScreen"})
+    expect(thing.type).toEqual('screen')
+  })
+
+  it('sets type=track on Track', () => {
+    const thing = new Track({key: "SomeScreen"})
+    expect(thing.type).toEqual('track')
+  })
+
   for(const t of[Screen, Track]) {
     describe(t, () => {
       describe('key', () => {
-        it('throws when it doesnt have a key', () => {
-          expect( () => {
-            return new t({})
-          }).toThrowError("'key' is required")
-        })
-
         it("exposes key from the cosntructor", () => {
           const thing = new t({key: "SomeScreen"})
           expect(thing.key).toEqual('SomeScreen')
@@ -113,10 +117,17 @@ describe("EventTypes", () => {
           const thing = new t({key: "SomeScreen"})
           expect(thing.type).toEqual(t.name.toLowerCase())
         })
+      })
 
-        it('doesn\'t let you change the type', () => {
-          const thing = new t({key: "SomeScreen", type: "random"})
-          expect(thing.type).toEqual(t.name.toLowerCase())
+      describe('description', () => {
+        it('puts description in when defined', () => {
+          const thing = new t({key: "SomeScreen", description: "foobar"})
+          expect(thing.description).toEqual("foobar")
+        })
+
+        it('has no description otherwise', () => {
+          const thing = new t({key: "SomeScreen"})
+          expect(thing.description).toBeUndefined()
         })
       })
     })

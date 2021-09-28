@@ -74,3 +74,17 @@ export type AliasDefinition = UnionDefinition | ReferenceDefinition
 
 export type TypeDefinition = AnySimpleDefinition | AliasDefinition
 
+export type EventDefinition = {
+  key: string
+  name?: string
+  type: "screen" | "track"
+  features?: string[]
+  description?: string
+  additionalProperties?: boolean
+  loginRequired?: boolean
+  required?: string[]
+  properties?: { [key: string]: TypeDefinition }
+}
+
+export type ScreenDefinition = Omit<EventDefinition, "type">
+export type TrackDefinition = Omit<EventDefinition, "type">

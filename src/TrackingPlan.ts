@@ -1,6 +1,6 @@
 import * as EventTypes from './EventTypes'
 import TypeMapper from './TypeMapper'
-import { TypeDefinition } from './InputTypes'
+import { ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
 
 import {
   NamedType,
@@ -55,7 +55,7 @@ export default class TrackingPlan {
 
   parseScreens(screens) {
     for(const key in screens) {
-      const screen = new EventTypes.Screen({...screens[key], key})
+      const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
 
       if('features' in screens[key]) {
         for(const featureName of screens[key]['features']) {
@@ -80,7 +80,7 @@ export default class TrackingPlan {
 
   parseTracks(tracks: any) {
     for(const key in tracks) {
-      const track = new EventTypes.Track({...tracks[key], key})
+      const track = new EventTypes.Track({...tracks[key], key} as TrackDefinition)
 
       if('features' in tracks[key]) {
         for(const featureName of tracks[key]['features']) {

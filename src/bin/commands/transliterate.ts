@@ -1,6 +1,6 @@
 import yargs from 'yargs'
 
-import TransliterateCommand from '../command'
+import TransliterateCommand from '../../commands/TransliterateCommand'
 
 const module = {
   usage: 'transliterate -i ./human-readable.yml -o ./output',

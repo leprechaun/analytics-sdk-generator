@@ -1,6 +1,7 @@
 import ts from 'typescript'
 import * as functions from './Functions'
 import * as EventTypes from './EventTypes'
+import * as InputTypes from './InputTypes'
 
 describe(functions.AnalyticsFunction, () => {
   const track = new EventTypes.Track({
@@ -20,7 +21,7 @@ describe(functions.AnalyticsFunction, () => {
         type: 'string'
       }
     }
-  })
+  } as InputTypes.TrackDefinition)
 
   const fn = new functions.AnalyticsFunction(track)
   const ast = fn.toAST({})
@@ -104,7 +105,7 @@ describe(functions.AnalyticsFunction, () => {
                   }
                 }
               }
-            })
+            } as InputTypes.ScreenDefinition)
 
             track.features.push(
               {
@@ -155,7 +156,7 @@ describe(functions.AnalyticsFunction, () => {
                   }
                 }
               }
-            })
+            } as InputTypes.ScreenDefinition)
 
             track.features.push(
               {
@@ -210,7 +211,7 @@ describe(functions.AnalyticsFunction, () => {
                   }
                 }
               }
-            })
+            } as InputTypes.TrackDefinition)
 
             track.screens.push(
               {
@@ -251,23 +252,25 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('sets a constant when theres only one option', () => {
+            const thing = {
+              type: 'object',
+              properties: {
+                subthing: {
+                  type: 'string',
+                  enum: ['one', 'two', 'three']
+                }
+              }
+            } as InputTypes.TypeDefinition
+
+            const properties = { thing }
+
+
             const track = new EventTypes.Track({
               key: "Test&Event",
               name: "Test And Event",
-              features: [
-              ],
-              properties: {
-                thing: {
-                  type: 'object',
-                  properties: {
-                    subthing: {
-                      type: 'string',
-                      enum: ['one', 'two', 'three']
-                    }
-                  }
-                }
-              }
-            })
+              features: [],
+              properties
+            } as InputTypes.TrackDefinition)
 
             track.screens.push(
               {

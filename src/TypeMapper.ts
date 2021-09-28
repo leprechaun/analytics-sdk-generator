@@ -48,7 +48,7 @@ export default class TypeMapper {
 
   static toEnumeratedSimpleType(definition: InputTypes.EnumeratedSimpleDefinition): Types.UnionType | Types.Constant {
     if(definition.enum.length == 0) {
-      throw new Error("Enums must have at least one option")
+      throw new Error("Enums must have atleast one option")
     } else if( definition.enum.length == 1 ) {
       return Types.Constant.toSpecificType(definition.enum[0])
     } else {

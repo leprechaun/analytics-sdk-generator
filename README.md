@@ -2,7 +2,7 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/maintainability)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/test_coverage)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/test_coverage) [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fleprechaun%2Fanalytics-sdk-generator%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/leprechaun/analytics-sdk-generator/master)
 
-This project is a convenient for developers, data analysts and engineers alike.
+This project is a convenience for developers, data analysts and engineers alike.
 
 It takes in a yaml file describing a mobile application and the analytics events that should be sent, and generates a corresponding type-checked SDK.
 
@@ -23,7 +23,7 @@ yarn install
 yarn ts-node src/bin/cli.ts transliterate \
   --input src/example/example-schema.yml \
   --output ./output \
-  --implemenmtation ./src/example/example-implementation
+  --implementation ./src/example/example-implementation
 yarn ts-node src/example/example-client.ts
 ```
 

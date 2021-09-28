@@ -3,8 +3,8 @@ import ts, { factory } from "typescript"
 import fs from 'fs'
 import path from 'path'
 
-import TrackingPlan from './TrackingPlan'
-import Transliterator from './Transliterator'
+import TrackingPlan from '../TrackingPlan'
+import Transliterator from '../Transliterator'
 
 export default class TransliterateCommand {
   args: {
