@@ -227,33 +227,34 @@ export class AnalyticsFunction {
     )
   }
 
+  stringVariable(name: string, value: string) {
+    return factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [factory.createVariableDeclaration(
+          factory.createIdentifier(name),
+          undefined,
+          undefined,
+          factory.createStringLiteral(value)
+        )],
+        ts.NodeFlags.Const | ts.NodeFlags.AwaitContext | ts.NodeFlags.ContextFlags | ts.NodeFlags.TypeExcludesFlags
+      )
+    )
+  }
+
+  eventType() {
+    return this.stringVariable("type", this.event.type)
+  }
+
+  eventName() {
+    return this.stringVariable("name", this.event.name)
+  }
+
   functionBlock(options: ToASTOptions): any[] {
     const overwritten = this.overwrites(options)
     return [
-      factory.createVariableStatement(
-            undefined,
-            factory.createVariableDeclarationList(
-              [factory.createVariableDeclaration(
-                factory.createIdentifier("type"),
-                undefined,
-                undefined,
-                factory.createStringLiteral(this.event.type)
-              )],
-              ts.NodeFlags.Const | ts.NodeFlags.AwaitContext | ts.NodeFlags.ContextFlags | ts.NodeFlags.TypeExcludesFlags
-            )
-          ),
-      factory.createVariableStatement(
-        undefined,
-        factory.createVariableDeclarationList(
-          [factory.createVariableDeclaration(
-            factory.createIdentifier("name"),
-            undefined,
-            undefined,
-            factory.createStringLiteral(this.event.name)
-          )],
-          ts.NodeFlags.Const | ts.NodeFlags.AwaitContext | ts.NodeFlags.ContextFlags | ts.NodeFlags.TypeExcludesFlags
-        )
-      ),
+      this.eventType(),
+      this.eventName(),
       factory.createVariableStatement(
         undefined,
         factory.createVariableDeclarationList(

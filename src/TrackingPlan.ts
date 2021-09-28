@@ -53,28 +53,34 @@ export default class TrackingPlan {
     }
   }
 
+  parseScreen(screens, key: string) {
+    const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
+
+    if('features' in screens[key]) {
+      for(const featureName of screens[key]['features']) {
+        const feature = this.getFeature(featureName)
+
+        feature.addScreen(screen)
+        screen.features.push(feature)
+      }
+    }
+
+    if('tracks' in screens[key]) {
+      for(const trackName of screens[key]['tracks']) {
+        const t = this.getTrack(trackName)
+        screen.tracks.push(t.toScreenSpecific(screen))
+        t.screens.push(screen)
+      }
+    }
+
+    return screen
+  }
+
   parseScreens(screens) {
     for(const key in screens) {
-      const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
-
-      if('features' in screens[key]) {
-        for(const featureName of screens[key]['features']) {
-          const feature = this.getFeature(featureName)
-
-          feature.addScreen(screen)
-          screen.features.push(feature)
-        }
-      }
-
-      if('tracks' in screens[key]) {
-        for(const trackName of screens[key]['tracks']) {
-          const t = this.getTrack(trackName)
-          screen.tracks.push(t.toScreenSpecific(screen))
-          t.screens.push(screen)
-        }
-      }
-
-      this.screens.push(screen)
+      this.screens.push(
+        this.parseScreen(screens, key)
+      )
     }
   }
 

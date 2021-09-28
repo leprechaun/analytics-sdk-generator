@@ -5,3 +5,5 @@ yarn-error.log
 
 # stryker temp files
 .stryker-tmp
+coverage
+reports
