@@ -69,6 +69,8 @@ pipelines:
         destination: ./
 
     environment_variables: {}
+    secure_variables:
+      STRYKER_DASHBOARD_API_KEY: "AES:pqZiKikLWjhglnJRQzr4mw==:+SjlHeU3cqsUgXPcCxMnW0mnGBDYEgN+sTAyty4TBdML9942vsvgI1irfaiKTgCY"
     stages:
       - mutation:
           tasks:

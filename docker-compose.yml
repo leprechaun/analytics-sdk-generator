@@ -10,7 +10,9 @@ services:
       - ./:/app/
       - yarn-cache:/usr/local/share/.cache/yarn/v2
       - node_modules:/app/node_modules/
-    environment: {}
+    environment:
+      STRYKER_DASHBOARD_API_KEY: "${STRYKER_DASHBOARD_API_KEY}-invalid"
+
 
 volumes:
   node_modules: {}

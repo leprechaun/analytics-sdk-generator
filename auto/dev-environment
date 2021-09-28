@@ -4,6 +4,6 @@ docker volume create yarn-cache > /dev/null || true
 
 docker-compose run bare yarn install
 
-docker-compose run -e NPM_TOKEN --use-aliases --service-ports ${SERVICE-bare} ${@}
+docker-compose run -e STRYKER_DASHBOARD_API_KEY -e NPM_TOKEN --use-aliases --service-ports ${SERVICE-bare} ${@}
 
 docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount

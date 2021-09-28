@@ -8,5 +8,9 @@
     "dashboard"
   ],
   "testRunner": "jest",
-  "coverageAnalysis": "perTest"
+  "coverageAnalysis": "perTest",
+  "dashboard": {
+    "project": "github.com/leprechaun/analytics-sdk-generator",
+    "version": "master"
+  }
 }
