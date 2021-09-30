@@ -55,6 +55,33 @@ describe(TypeMapper, () => {
         expect(t).toBeInstanceOf(types.ObjectType)
       })
 
+      describe.skip("ObjectType to partial literal", () => {
+        const definition = {
+          type: "object",
+          required: [],
+          properties: {
+            has_one_option: {
+              type: "string",
+              enum: [
+                "just one option"
+              ]
+            },
+            has_two_options: {
+              type: "string",
+              enum: [
+                "one", "two"
+              ]
+            }
+          }
+        } as InputTypes.TypeDefinition
+
+        it('casts stuff', () => {
+          const o = TypeMapper.toSpecificType(definition)
+          //console.log(o.properties[0].toPartialLiteralAst())
+          //console.log(o.properties[1])
+        })
+      })
+
       describe(types.ObjectProperty, () => {
         it('casts properties as Object', () => {
           expect(t.properties[0]).toBeInstanceOf(types.ObjectProperty)
@@ -129,11 +156,17 @@ describe(TypeMapper, () => {
 
           })).toBeInstanceOf(types.UnionType)
 
-          expect((TypeMapper.toSpecificType({
+          const options = (TypeMapper.toSpecificType({
             'type': 'string',
             'enum': ["one", "two"]
 
-          }) as types.UnionType).options).toEqual([new types.Constant("one"), new types.Constant("two")])
+          }) as types.UnionType).options
+
+          expect(options[0]).toBeInstanceOf(types.Constant)
+          expect(options[0].value).toEqual("one")
+
+          expect(options[1]).toBeInstanceOf(types.Constant)
+          expect(options[1].value).toEqual("two")
         })
 
         it('returns a constant when its one option of a simple type', () => {
@@ -142,7 +175,7 @@ describe(TypeMapper, () => {
             'enum': ["one"]
           }) as types.Constant
           expect(t).toBeInstanceOf(types.Constant)
-          expect(t.type).toEqual('string')
+          expect(t.type).toBeInstanceOf(types.StringType)
           expect(t.value).toEqual("one")
         })
 

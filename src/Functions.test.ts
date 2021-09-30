@@ -171,7 +171,6 @@ describe(functions.AnalyticsFunction, () => {
             expect(feature.type.literal.text).toEqual('SomeFeatureName')
             expect(feature.questionToken).not.toBeUndefined()
           })
-
         })
 
         describe('screen', () => {

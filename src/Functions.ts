@@ -1,7 +1,7 @@
 import ts, {factory } from 'typescript'
 
 import { Screen, Track } from './EventTypes'
-import { PrintableDataType, ObjectType, ObjectProperty, Constant } from './Types'
+import { PrintableDataType, ObjectType, ObjectProperty, Constant, StringType } from './Types'
 import TypeMapper from './TypeMapper'
 
 type ImportMapping = string[]
@@ -125,7 +125,7 @@ export class AnalyticsFunction {
           case 1:
             return new ObjectProperty(
               name,
-              new Constant(uniqueSourceAttributeValues[k][0]),
+              new Constant(uniqueSourceAttributeValues[k][0]).setType(new StringType({})),
               false
             ).toAST(options)
 

@@ -15,6 +15,10 @@ export class BaseType {
   toAST(options?: {}): ts.Node | ts.Node[] {
     return null as any
   }
+
+  toPartialLiteralAST(value: any): any {
+    return factory.createStringLiteral("hardcodedlol")
+  }
 }
 
 export class SimpleType extends BaseType {
@@ -91,6 +95,10 @@ export class StringType extends AnyStringType {
   toAST(options?: {}) {
     return factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
   }
+
+  toPartialLiteralAST(value: any) {
+    return factory.createStringLiteral(value)
+  }
 }
 
 export class FormattedStringType extends AnyStringType {
@@ -129,6 +137,10 @@ export class NumberType extends PrimitiveType {
     return factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
   }
 
+  toPartialLiteralAST(value: any) {
+    return factory.createNumericLiteral(value)
+  }
+
   static toSpecificType(definition: InputTypes.NumberDefinition) {
     return new this(definition)
   }
@@ -141,6 +153,10 @@ export class BooleanType extends PrimitiveType {
 
   static toSpecificType(definition: InputTypes.BooleanDefinition) {
     return new this(definition)
+  }
+
+  toPartialLiteralAST(value: any) {
+    return !!value ? factory.createTrue() : factory.createFalse()
   }
 }
 
@@ -162,6 +178,16 @@ export class ArrayType extends ComplexType {
   static toSpecificType(definition: InputTypes.ArrayDefinition) {
     return new this(definition)
   }
+
+  toPartialLiteralAST(value: any) {
+    factory.createArrayLiteralExpression(
+      [
+        factory.createTrue(),
+        factory.createFalse()
+      ],
+      false
+    )
+  }
 }
 
 type ToASTOptions = {
@@ -179,11 +205,29 @@ export class ObjectProperty {
     this.required = required
   }
 
+  toPartialLiteralAST() {
+    if(this.type instanceof Constant) {
+      return factory.createPropertyAssignment(
+        factory.createIdentifier(this.name),
+        (this.type as Constant).toPartialLiteralAST()
+      )
+    }
+    else if(this.type instanceof ObjectType) {
+      return factory.createPropertyAssignment(
+        factory.createIdentifier(this.name),
+        (this.type as ObjectType).toPartialLiteralAST()
+      )
+    } else {
+      throw new Error("WUT")
+    }
+  }
+
   toAST(options?: ToASTOptions) {
     let identifier
     if(
       this.name.includes('-') ||
-      this.name.includes('&')
+      this.name.includes('&') ||
+      this.name.includes(' ')
     ) {
       identifier = factory.createStringLiteral(this.name)
     } else {
@@ -226,18 +270,12 @@ export class ObjectType extends ComplexType  {
     return new this(definition)
   }
 
-  toPartialObjectDefinition(values: {[key: string]: any}, rest?: string) {
+
+  toPartialLiteralAST(options?: {importMappings?: {[key: string]: string[]}}) {
+    const props = this.properties.filter( p => p.type instanceof Constant || p.type instanceof ObjectType).map( p => p.toPartialLiteralAST() )
+
     return factory.createObjectLiteralExpression(
-      [
-        factory.createPropertyAssignment(
-          factory.createIdentifier("key1"),
-          factory.createStringLiteral("asdasd")
-        ),
-        factory.createPropertyAssignment(
-          factory.createIdentifier("key2"),
-          factory.createNumericLiteral("123")
-        )
-      ],
+      props,
       true
     )
   }
@@ -278,10 +316,10 @@ export class TypeReference extends BaseType {
 
 export class Constant extends BaseType {
   value: any
-  type: string
+  type: BaseType
+
   constructor(value: any) {
     super({})
-    this.type = typeof(value)
     this.value = value
   }
 
@@ -289,7 +327,21 @@ export class Constant extends BaseType {
     return new this(definition)
   }
 
+  setType(type: BaseType) {
+    this.type = type
+    return this
+  }
+
+  toPartialLiteralAST() {
+    return (this.type).toPartialLiteralAST(this.value)
+  }
+
   toAST(options?: {}): ts.LiteralTypeNode {
+    return factory.createLiteralTypeNode(
+      (this.type as StringType).toPartialLiteralAST(this.value)
+    )
+
+    /*
     switch(this.type) {
       case 'number':
         return factory.createLiteralTypeNode(factory.createNumericLiteral(this.value))
@@ -298,6 +350,7 @@ export class Constant extends BaseType {
       default:
         return factory.createLiteralTypeNode(factory.createStringLiteral(this.value))
     }
+    */
   }
 }
 
@@ -327,14 +380,15 @@ export class UnionType extends BaseType {
 
 export class NamedType {
   type: BaseType
-  name: string | string[]
+  name: string
   description?: string
 
-  constructor(name: string | string[], type: BaseType, description?: string) {
+  constructor(name: string, type: BaseType, description?: string) {
     this.type = type
     this.name = name
     this.description = description
   }
+
 
   toAST(options?: {importMappings?: {[key: string]: string[]}}) {
     const nodes = []
@@ -349,6 +403,31 @@ export class NamedType {
       factory.createIdentifier(this.name as string),
       undefined,
       this.type.toAST(options) as ts.TypeNode
+    ))
+
+    return nodes
+  }
+
+  toPartialLiteralAST() {
+    const nodes = []
+
+    if(this.description) {
+      nodes.push(factory.createJSDocComment(this.description))
+    }
+
+
+
+    nodes.push(factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [factory.createVariableDeclaration(
+          factory.createIdentifier(this.name as string),
+          undefined,
+          undefined,
+          (this.type as Constant).toPartialLiteralAST()
+        )],
+        ts.NodeFlags.Const
+      )
     ))
 
     return nodes

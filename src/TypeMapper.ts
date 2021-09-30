@@ -50,9 +50,16 @@ export default class TypeMapper {
     if(definition.enum.length == 0) {
       throw new Error("Enums must have atleast one option")
     } else if( definition.enum.length == 1 ) {
-      return Types.Constant.toSpecificType(definition.enum[0])
+      const t = Types.Constant.toSpecificType(definition.enum[0])
+      delete definition.enum
+      t.setType(this.toNonEnumeratedSimpleType(definition))
+      return t
     } else {
-      return new Types.UnionType({options: definition.enum.map( v => new Types.Constant(v))})
+      const t = this.toNonEnumeratedSimpleType(definition)
+
+      return new Types.UnionType({
+        options: definition.enum.map( v => new Types.Constant(v).setType(t) )
+      })
     }
   }
 
