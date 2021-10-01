@@ -14,6 +14,10 @@ describe(TrackingPlan, () => {
             type: "string"
           }
         }
+      },
+      FeatureSpecificTrack: {
+        name: "Feature Specific Track",
+        features: ['Special Feature']
       }
     },
     screens: {
@@ -55,16 +59,11 @@ describe(TrackingPlan, () => {
     it('creates the features it finds', () => {
       const features = TP.features
 
-      expect(features.length).toEqual(3)
+      expect(features.length).toEqual(4)
 
-      expect(features[0]).toBeInstanceOf(Feature)
-      expect(features[0].name).toEqual('Onboarding')
-
-      expect(features[1]).toBeInstanceOf(Feature)
-      expect(features[1].name).toEqual('Just Onboarding')
-
-      expect(features[2]).toBeInstanceOf(Feature)
-      expect(features[2].name).toEqual('AnotherFeature')
+      expect(features.map( f => f.name)).toEqual(
+        expect.arrayContaining(['Onboarding', 'Just Onboarding', 'AnotherFeature', 'Special Feature'])
+      )
     })
   })
 
@@ -79,19 +78,37 @@ describe(TrackingPlan, () => {
     })
 
     it('puts the screens in the features', () => {
-      const screen = TP.features[0].screens[0]
+      const screen = TP.features.filter( f => f.name == 'Onboarding')[0].screens[0]
       expect(screen).toBeInstanceOf(Screen)
       expect(screen.key).toEqual('Welcome')
     })
 
     it('puts the tracks in the feature screens', () => {
-      const track = TP.features[0].screens[0].tracks[0]
-      expect(track.constructor.name).toEqual('Track')
-      expect(track.key).toEqual('SomeTrack')
+      const screen = TP.features.filter( f => f.name == 'Onboarding')[0].screens.filter( s => s.key == 'Welcome')[0]
+      expect(screen.tracks.length).toEqual(2)
     })
   })
 
   describe(Track, () => {
+    it('sees 3 tracks', () => {
+      const tracks = TP.tracks
+
+      expect(tracks.length).toEqual(3)
+    })
+
+    it('puts features in tracks', () => {
+      const tracks = TP.tracks
+      expect(tracks[2].features).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            name: 'Special Feature'
+          })
+        ])
+      )
+
+      expect(tracks[2].features.length).toEqual(1)
+    })
+
     it('puts tracks in .tracks', () => {
       const tracks = TP.tracks
       expect(tracks[0]).toBeInstanceOf(Track)
@@ -154,6 +171,4 @@ describe(TrackingPlan, () => {
       expect(TP.traits[0].name).toEqual('userId')
     })
   })
-
-
 })
