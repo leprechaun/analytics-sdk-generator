@@ -169,6 +169,8 @@ describe(TrackingPlan, () => {
       expect(TP.traits[0]).toBeInstanceOf(types.NamedType)
       expect(TP.traits[0].type).toBeInstanceOf(types.TypeReference)
       expect(TP.traits[0].name).toEqual('userId')
+
+      expect(TP.traits.length).toEqual(1)
     })
   })
 })
