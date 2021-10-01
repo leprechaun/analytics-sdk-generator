@@ -13,6 +13,8 @@ export default class TypeMapper {
       return Types.TypeReference.toSpecificType(definition as InputTypes.ReferenceDefinition)
     } else if('oneOf' in definition) {
       return this.toUnionType(definition as InputTypes.UnionDefinition)
+    } else if('const' in definition) {
+      return this.toConstantType(definition as InputTypes.ConstantDefinition)
     } else {
       throw new Error("Unknown type definition")
     }
@@ -24,6 +26,24 @@ export default class TypeMapper {
     } else {
       return this.toNonEnumeratedSimpleType(definition as InputTypes.NonEnumeratedSimpleDefinition)
     }
+  }
+
+  static toConstantType(definition: InputTypes.ConstantDefinition) {
+    switch(definition['const'].constructor.name) {
+      case 'String':
+        return new Types.Constant(definition['const']).setType(new Types.StringType({}))
+
+      case 'Number':
+        return new Types.Constant(definition['const']).setType(new Types.NumberType({}))
+
+        /*
+      case 'Object':
+        return new Types.Constant(definition['const']).setType(new Types.ObjectType({}))
+
+      case 'Array':
+      */
+    }
+
   }
 
   static toNonEnumeratedSimpleType(definition: InputTypes.NonEnumeratedSimpleDefinition): Types.SimpleType {

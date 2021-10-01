@@ -18,6 +18,10 @@ export type ReferenceDefinition = {
   $ref: string
 }
 
+export type ConstantDefinition = {
+  'const': any
+} & Describable
+
 export type ObjectDefinition = {
   type: 'object'
   properties: ObjectProperties
@@ -72,7 +76,7 @@ export type AnySimpleDefinition = EnumeratedSimpleDefinition | NonEnumeratedSimp
 
 export type AliasDefinition = UnionDefinition | ReferenceDefinition
 
-export type TypeDefinition = AnySimpleDefinition | AliasDefinition
+export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDefinition
 
 export type EventDefinition = {
   key: string

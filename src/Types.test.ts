@@ -11,6 +11,34 @@ describe(TypeMapper, () => {
     })
   })
 
+  describe(types.Constant, () => {
+    it('recognises the `const` keyword', () => {
+      const t = TypeMapper.toSpecificType({
+        'const': "asdasd"
+      })
+
+      expect(t).toBeInstanceOf(types.Constant)
+    })
+
+    describe('casting to a type based on typeof', () => {
+      it('guesses strings', () => {
+        const t = TypeMapper.toSpecificType({
+          'const': "asdasd"
+        })
+
+        expect(t.type).toBeInstanceOf(types.StringType)
+      })
+
+      it('guesses numbers', () => {
+        const t = TypeMapper.toSpecificType({
+          'const': 123
+        })
+
+        expect(t.type).toBeInstanceOf(types.NumberType)
+      })
+    })
+  })
+
   describe(types.ComplexType, () => {
     describe(types.ArrayType, () => {
       it('understands arrays', () => {
