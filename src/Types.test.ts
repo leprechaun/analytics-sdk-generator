@@ -14,7 +14,7 @@ describe(TypeMapper, () => {
   describe(types.Constant, () => {
     it('recognises the `const` keyword', () => {
       const t = TypeMapper.toSpecificType({
-        'const': "asdasd"
+        'const': "asdas"
       })
 
       expect(t).toBeInstanceOf(types.Constant)
@@ -105,8 +105,6 @@ describe(TypeMapper, () => {
 
         it('casts stuff', () => {
           const o = TypeMapper.toSpecificType(definition)
-          //console.log(o.properties[0].toPartialLiteralAst())
-          //console.log(o.properties[1])
         })
       })
 
@@ -307,7 +305,6 @@ describe(TypeMapper, () => {
           '$ref': "SomeType"
         })).toBeInstanceOf(types.TypeReference)
       })
-
     })
   })
 })

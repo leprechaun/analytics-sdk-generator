@@ -1,7 +1,8 @@
 import ts, {factory } from 'typescript'
 
 import { Screen, Track } from './EventTypes'
-import { PrintableDataType, ObjectType, ObjectProperty, Constant, StringType } from './Types'
+import { NamedType, PrintableDataType, ObjectType, ObjectProperty, Constant, StringType } from './Types'
+import * as InputTypes from './InputTypes'
 import TypeMapper from './TypeMapper'
 
 type ImportMapping = string[]
@@ -34,135 +35,15 @@ export class AnalyticsFunction {
     )
   }
 
-  uniqueFeaturesAndScreens() {
-    const featureNamesSet = new Set<string>()
-    const screenNamesSet = new Set<string>()
-
-    if('screens' in this.event) {
-      for(const s of this.event.screens) {
-        screenNamesSet.add(s.name)
-        for(const f of s.features) {
-          featureNamesSet.add(f.name)
-        }
-      }
-    }
-
-    if('features' in this.event) {
-      for(const f of this.event.features) {
-        featureNamesSet.add(f.name)
-      }
-    }
-
-    const featureNames = Array.from(featureNamesSet)
-    const screenNames = Array.from(screenNamesSet)
-
-    return {
-      features: featureNames,
-      screens: screenNames
-    }
-  }
-
-  overwrites(options?: ToASTOptions) {
-    const {
-      screens,
-      features
-    } = this.uniqueFeaturesAndScreens()
-
-    const overwrites = []
-
-    if(features.length == 1) {
-      overwrites.push(factory.createPropertyAssignment(
-        factory.createIdentifier('feature'),
-        factory.createStringLiteral(features[0] as string)
-      ))
-    }
-
-    if(screens.length == 1) {
-      overwrites.push(factory.createPropertyAssignment(
-        factory.createIdentifier('screen'),
-        factory.createStringLiteral(screens[0] as string)
-      ))
-    }
-
-    return overwrites
-  }
-
-  sourcePropertySignatures(options: ToASTOptions) {
-    const uniqueSourceAttributeValues = this.uniqueFeaturesAndScreens()
-
-    return ['feature', 'screen', 'widget', 'element', 'action'].map( name => {
-      let type: PrintableDataType
-
-      const k = name + 's'
-      if(!(k in uniqueSourceAttributeValues)) {
-        return new ObjectProperty(
-          name,
-          TypeMapper.toSpecificType({
-            'type': 'string'
-          }),
-          false
-        ).toAST(options)
-      }
-      else {
-        let ref: string
-        if(name == 'feature') {
-          ref = 'FeatureNames'
-        } else if(name == 'screen') {
-          ref = 'ScreenNames'
-        }
-
-        const k = name + 's'
-        switch(uniqueSourceAttributeValues[k].length) {
-          case 0:
-            return new ObjectProperty(
-              name,
-              TypeMapper.toSpecificType({
-                "$ref": `#/$defs/${ref}`
-              }),
-              true
-            ).toAST(options)
-
-          case 1:
-            return new ObjectProperty(
-              name,
-              new Constant(uniqueSourceAttributeValues[k][0]).setType(new StringType({})),
-              false
-            ).toAST(options)
-
-          default:
-            return new ObjectProperty(
-              name,
-              TypeMapper.toSpecificType({
-                type: 'string',
-                enum: uniqueSourceAttributeValues[k]
-              }),
-              true
-            ).toAST(options)
-        }
-      }
-    })
-  }
-
   sourceParameter(options?: ToASTOptions) {
-    const o = {
-      required: false,
-      items: {
-        feature: true,
-        screen: true,
-        widget: true,
-        element: true,
-        action: true
-      }
-    }
-
     return factory.createParameterDeclaration(
       undefined,
       undefined,
       undefined,
       factory.createIdentifier("source"),
-      o.required ? undefined : factory.createToken(ts.SyntaxKind.QuestionToken),
+      factory.createToken(ts.SyntaxKind.QuestionToken),
       factory.createTypeLiteralNode(
-        this.sourcePropertySignatures(options)
+        this.event.sourceToObjectType().toAST(options).members
       ),
       undefined
     )
@@ -172,10 +53,17 @@ export class AnalyticsFunction {
     const block = this.functionBlock(options)
 
     let implementation: ts.ExpressionStatement | ts.CallExpression
+    const params = [
+        factory.createStringLiteral(this.event.type),
+        factory.createStringLiteral(this.event.name),
+      factory.createIdentifier("props"),
+      this.event.sourceToObjectType().toPartialLiteralAST("source")
+    ]
+
     if(options.hasImplementation) {
-      implementation = this.specifiedImplementation()
+      implementation = this.specifiedImplementation(params)
     } else {
-      implementation = this.emptyImplementation()
+      implementation = this.emptyImplementation(params)
     }
 
     return factory.createArrowFunction(
@@ -188,42 +76,32 @@ export class AnalyticsFunction {
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock(
-        block.concat([implementation]),
+        [implementation as ts.Statement],
         true
       )
     )
   }
 
-  specifiedImplementation() {
+  specifiedImplementation(params: ts.Expression[]) {
     return factory.createExpressionStatement(
       factory.createAwaitExpression(
         factory.createCallExpression(
           factory.createIdentifier("implementation"),
           undefined,
-          [
-            factory.createIdentifier("type"),
-            factory.createIdentifier("name"),
-            factory.createIdentifier("props"),
-            factory.createIdentifier("overwrittenSource")
-          ]
-        )
+          params
+          )
       )
     )
   }
 
-  emptyImplementation() {
+  emptyImplementation(params: ts.Expression[]) {
     return factory.createCallExpression(
       factory.createPropertyAccessExpression(
         factory.createIdentifier("console"),
         factory.createIdentifier("log")
       ),
       undefined,
-      [
-        factory.createIdentifier("type"),
-        factory.createIdentifier("name"),
-        factory.createIdentifier("props"),
-        factory.createIdentifier("overwrittenSource")
-      ]
+      params
     )
   }
 
@@ -251,28 +129,7 @@ export class AnalyticsFunction {
   }
 
   functionBlock(options: ToASTOptions): any[] {
-    const overwritten = this.overwrites(options)
-    return [
-      this.eventType(),
-      this.eventName(),
-      factory.createVariableStatement(
-        undefined,
-        factory.createVariableDeclarationList(
-          [factory.createVariableDeclaration(
-            factory.createIdentifier("overwrittenSource"),
-            undefined,
-            undefined,
-            factory.createObjectLiteralExpression(
-              (overwritten as any[]).concat([
-                factory.createSpreadAssignment(factory.createIdentifier("source"))
-              ]),
-              true
-            )
-          )],
-          ts.NodeFlags.Const | ts.NodeFlags.AwaitContext | ts.NodeFlags.ContextFlags | ts.NodeFlags.TypeExcludesFlags
-        )
-      )
-    ]
+    return []
   }
 }
 
@@ -317,13 +174,6 @@ export class ScreenSpecificTrackAnalyticsFunction {
   constructor(track: Track, screen: Screen) {
     this.track = track
     this.screen = screen
-  }
-
-  generateIdentifier() {
-    return factory.createPropertyAccessExpression(
-      factory.createIdentifier(this.screen.escapeKey()),
-      factory.createIdentifier(this.track.escapeKey())
-    )
   }
 
   toAST(options?: ToASTOptions) {

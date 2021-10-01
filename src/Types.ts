@@ -271,8 +271,21 @@ export class ObjectType extends ComplexType  {
   }
 
 
-  toPartialLiteralAST(options?: {importMappings?: {[key: string]: string[]}}) {
-    const props = this.properties.filter( p => p.type instanceof Constant || p.type instanceof ObjectType).map( p => p.toPartialLiteralAST() )
+  toPartialLiteralAST(overwrites?: string, defaults?: string, options?: {importMappings?: {[key: string]: string[]}}) {
+    const filter = (p: ObjectProperty) => {
+      return p.type instanceof Constant || p.type instanceof ObjectType
+    }
+
+    let props = this.properties.filter(filter).map( p => p.toPartialLiteralAST() )
+
+    if(typeof(overwrites) == 'string') {
+      props.push(
+        factory.createSpreadAssignment(factory.createIdentifier(overwrites))
+      )
+    }
+    if(typeof(defaults) == 'string') {
+      props = [factory.createSpreadAssignment(factory.createIdentifier(defaults))].concat(props)
+    }
 
     return factory.createObjectLiteralExpression(
       props,
@@ -291,7 +304,6 @@ export class TypeReference extends BaseType {
 
   jsonRefToName(options?: {importMappings?: {[key: string]: string[]}}) {
     const fqn = this.reference.split("/")
-
     if(options?.importMappings) {
       return factory.createQualifiedName(
         factory.createIdentifier(options.importMappings[fqn[1]][1]),

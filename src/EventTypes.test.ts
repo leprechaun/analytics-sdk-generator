@@ -1,6 +1,6 @@
 import TypeMapper from './TypeMapper'
 import * as types from './Types'
-import { Screen, Track } from './EventTypes'
+import { Feature, Screen, Track } from './EventTypes'
 
 describe("EventTypes", () => {
   it('sets type=screen on Screen', () => {
@@ -11,6 +11,139 @@ describe("EventTypes", () => {
   it('sets type=track on Track', () => {
     const thing = new Track({key: "SomeScreen"})
     expect(thing.type).toEqual('track')
+  })
+
+  describe('sourceToObjectType', () => {
+    const track = new Track({
+      key: 'SomeEvent',
+      name: 'Some Event',
+    })
+
+    const source = track.sourceToObjectType()
+
+    it('returns an ObjectType', () => {
+      expect(source).toBeInstanceOf(types.ObjectType)
+    })
+
+    describe('without screens or features', () => {
+      const screen = source.properties.filter( p => p.name == 'screen' )[0]
+      const feature = source.properties.filter( p => p.name == 'feature' )[0]
+      const widget = source.properties.filter( p => p.name == 'widget' )[0]
+      const element = source.properties.filter( p => p.name == 'element' )[0]
+      const action = source.properties.filter( p => p.name == 'action' )[0]
+
+      it('restrict `feature` to `FeatureNames`', () => {
+        expect(feature.type).toBeInstanceOf(types.TypeReference)
+        expect(
+          (feature.type as types.TypeReference).reference)
+            .toEqual('#/$defs/FeatureNames')
+      })
+
+      it('restrict `screen` to `ScreenNames`', () => {
+        expect(screen.type).toBeInstanceOf(types.TypeReference)
+        expect(
+          (screen.type as types.TypeReference).reference
+        ).toEqual('#/$defs/ScreenNames')
+      })
+
+      it('lets widget be any string', () => {
+        expect(widget.type).toBeInstanceOf(types.StringType)
+      })
+
+      it('lets element be any string', () => {
+        expect(element.type).toBeInstanceOf(types.StringType)
+      })
+
+      it('lets action be any string', () => {
+        expect(action.type).toBeInstanceOf(types.StringType)
+      })
+    })
+
+    describe('screen', () => {
+      describe('with one screen', () => {
+        it('restricts `screen` to a constant', () => {
+          const track = new Track({
+            key: 'SomeEvent',
+            name: 'Some Event',
+          })
+
+          track.screens.push(new Screen({
+            key: "TheScreen",
+            name: 'The Screen'
+          }))
+
+          const screen = track.sourceToObjectType().properties.filter( p => p.name == 'screen' )[0]
+
+          expect(screen.type).toBeInstanceOf(types.Constant)
+        })
+      })
+
+      describe('with two or more screens', () => {
+        it('restricts `screen` to a union of the two', () => {
+          const track = new Track({
+            key: 'SomeEvent',
+            name: 'Some Event',
+          })
+
+          track.screens.push(new Screen({
+            key: "TheScreen",
+            name: 'The Screen'
+          }))
+
+          track.screens.push(new Screen({
+            key: "AnotherScreen",
+            name: 'Another Screen'
+          }))
+
+          const screen = track.sourceToObjectType().properties.filter( p => p.name == 'screen' )[0]
+
+          expect(screen.type).toBeInstanceOf(types.UnionType)
+          expect((screen.type as types.UnionType).options.length).toEqual(2)
+          expect((screen.type as types.UnionType).options[0]).toBeInstanceOf(types.Constant)
+          expect((screen.type as types.UnionType).options[0].value).toEqual("The Screen")
+          expect((screen.type as types.UnionType).options[1]).toBeInstanceOf(types.Constant)
+          expect((screen.type as types.UnionType).options[1].value).toEqual("Another Screen")
+        })
+      })
+    })
+
+    describe('feature', () => {
+      describe('with one feature', () => {
+        it('restricts `feature` to a constant', () => {
+          const track = new Track({
+            key: 'SomeEvent',
+            name: 'Some Event',
+          })
+
+          track.features.push(new Feature("Some Feature"))
+
+          const feature = track.sourceToObjectType().properties.filter( p => p.name == 'feature' )[0]
+
+          expect(feature.type).toBeInstanceOf(types.Constant)
+        })
+      })
+
+      describe('with two or more features', () => {
+        it('restricts `feature` to a union of the two', () => {
+          const track = new Track({
+            key: 'SomeEvent',
+            name: 'Some Event',
+          })
+
+          track.features.push(new Feature("Some Feature"))
+          track.features.push(new Feature("Another Feature"))
+
+          const feature = track.sourceToObjectType().properties.filter( p => p.name == 'feature' )[0]
+
+          expect(feature.type).toBeInstanceOf(types.UnionType)
+          expect((feature.type as types.UnionType).options.length).toEqual(2)
+          expect((feature.type as types.UnionType).options[0]).toBeInstanceOf(types.Constant)
+          expect((feature.type as types.UnionType).options[0].value).toEqual("Some Feature")
+          expect((feature.type as types.UnionType).options[1]).toBeInstanceOf(types.Constant)
+          expect((feature.type as types.UnionType).options[1].value).toEqual("Another Feature")
+        })
+      })
+    })
   })
 
   for(const t of[Screen, Track]) {

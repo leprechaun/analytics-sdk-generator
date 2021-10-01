@@ -18,9 +18,28 @@ export type ReferenceDefinition = {
   $ref: string
 }
 
-export type ConstantDefinition = {
-  'const': any
+
+export type StringConstantDefinition = {
+  'const': string
 } & Describable
+
+export type NumberConstantDefinition = {
+  'const': number
+} & Describable
+
+export type BooleanConstantDefinition = {
+  'const': boolean
+} & Describable
+
+export type ObjectConstantDefinition = {
+  'const': {}
+} & Describable
+
+export type ArrayConstantDefinition = {
+  'const': any[]
+} & Describable
+
+export type ConstantDefinition = StringConstantDefinition | NumberConstantDefinition | ArrayConstantDefinition | ObjectConstantDefinition | BooleanConstantDefinition
 
 export type ObjectDefinition = {
   type: 'object'
@@ -45,7 +64,7 @@ export type BooleanDefinition = {
 
 export type ArrayDefinition = {
   type: 'array',
-  items: TypeDefinition
+  items: TypeDefinition // this doesnt work
 } & Describable & Enumerable
 
 export type UnionDefinition = {

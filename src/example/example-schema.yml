@@ -11,6 +11,7 @@ screens:
     description: Swipable, and skippable, carousel like screen that shows why people should use our app
     features:
       - Onboarding
+      - AnotherFeature
     links:
       - Login
     tracks:

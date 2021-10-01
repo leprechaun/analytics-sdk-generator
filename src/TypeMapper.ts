@@ -36,13 +36,14 @@ export default class TypeMapper {
       case 'Number':
         return new Types.Constant(definition['const']).setType(new Types.NumberType({}))
 
-        /*
       case 'Object':
-        return new Types.Constant(definition['const']).setType(new Types.ObjectType({}))
-
       case 'Array':
-      */
+      default:
+        throw new Error("Unsupported Constant type")
     }
+  }
+
+  static toObjectConstant(definition: InputTypes.ConstantDefinition) {
 
   }
 

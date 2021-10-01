@@ -1,4 +1,5 @@
 import TypeMapper from './TypeMapper'
+import * as InputTypes from './InputTypes'
 import { EventDefinition, TrackDefinition, ScreenDefinition, ObjectDefinition } from './InputTypes'
 import { ObjectType } from './Types'
 
@@ -33,9 +34,15 @@ export class Event {
   loginRequired?: boolean
   properties: ObjectType
   features: Feature[]
+  tracks: Track[]
+  screens: Screen[]
 
 
   constructor(definition: EventDefinition) {
+    this.features = []
+    this.tracks = []
+    this.screens = []
+
     if(!('key' in definition)) {
       throw new Error("'key' is required")
     }
@@ -70,6 +77,86 @@ export class Event {
   escapeKey() {
     return this.key.replace(" ","").replace("&", "n")
   }
+
+  uniqueFeaturesAndScreens() {
+    const featureNamesSet = new Set<string>()
+    const screenNamesSet = new Set<string>()
+
+    if('screens' in this) {
+      for(const s of this.screens) {
+        screenNamesSet.add(s.name)
+        for(const f of s.features) {
+          featureNamesSet.add(f.name)
+        }
+      }
+    }
+
+    if('features' in this) {
+      for(const f of this.features) {
+        featureNamesSet.add(f.name)
+      }
+    }
+
+    const featureNames = Array.from(featureNamesSet)
+    const screenNames = Array.from(screenNamesSet)
+
+    return {
+      features: featureNames,
+      screens: screenNames
+    }
+  }
+
+
+  sourceToObjectType() {
+    const properties = {}
+    const required = []
+
+    for(const prop of ['widget', 'element', 'action']) {
+      properties[prop] = {type:'string'}
+    }
+
+    const screensAndFeatures = this.uniqueFeaturesAndScreens()
+
+    if(this.type != 'screen' && screensAndFeatures.screens.length > 0) {
+      properties['screen'] = {
+        type: 'string',
+        enum: screensAndFeatures.screens as string[]
+      }
+
+      if(screensAndFeatures.screens.length > 1) {
+        required.push('screen')
+      }
+    } else {
+      properties['screen'] = {
+        $ref: "#/$defs/ScreenNames"
+      }
+      required.push('screen')
+    }
+
+    if(this.type != 'screen' && screensAndFeatures.features.length > 0) {
+      properties['feature'] = {
+        type: 'string',
+        enum: screensAndFeatures.features as string[]
+      }
+
+      if(screensAndFeatures.features.length > 1) {
+        required.push('feature')
+      }
+    } else {
+      properties['feature'] = {
+        $ref: "#/$defs/FeatureNames"
+      }
+      required.push('feature')
+    }
+
+    const definition = {
+      type: 'object',
+      properties,
+      required
+    }
+
+    return new ObjectType(definition as InputTypes.ObjectDefinition)
+  }
 }
 
 export class Screen extends Event {
@@ -78,9 +165,6 @@ export class Screen extends Event {
 
   constructor(definition: ScreenDefinition) {
     super({...definition, type: "screen"})
-
-    this.features = []
-    this.tracks = []
   }
 }
 
@@ -91,9 +175,6 @@ export class Track extends Event {
 
   constructor(definition: TrackDefinition) {
     super({...definition, type: "track"})
-
-    this.features = []
-    this.screens = []
   }
 
   toScreenSpecific(screen: Screen) {

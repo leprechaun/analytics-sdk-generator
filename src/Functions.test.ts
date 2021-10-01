@@ -68,7 +68,10 @@ describe(functions.AnalyticsFunction, () => {
         })
 
         describe('feature', () => {
-          const feature = (ast.parameters[1].type as any ).members[0]
+          const feature = (ast.parameters[1].type as any ).members.filter(
+            p => p.name.escapedText == 'feature'
+          )[0]
+
           it('is named "feature"', () => {
             expect(feature).toEqual(
               expect.objectContaining({
@@ -84,27 +87,20 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('restricts to FeatureNames when unknown', () => {
-            expect(feature.questionToken).toBeUndefined()
             expect(feature.type.typeName.escapedText).toEqual("FeatureNames")
           })
 
-          it('is an enum\'ish when there are 2 or more options', () => {
+          it('sets feature as required', () => {
+            expect(feature.questionToken).toBeUndefined()
+          })
+
+          it('is required when there are not just one option', () => {
             const track = new EventTypes.Screen({
               key: "Test&Event",
               name: "Test And Event",
               features: [
               ],
-              properties: {
-                thing: {
-                  type: 'object',
-                  properties: {
-                    subthing: {
-                      type: 'string',
-                      enum: ['one', 'two', 'three']
-                    }
-                  }
-                }
-              }
+              properties: {}
             } as InputTypes.ScreenDefinition)
 
             track.features.push(
@@ -120,42 +116,20 @@ describe(functions.AnalyticsFunction, () => {
 
             const fn = new functions.AnalyticsFunction(track)
             const ast = fn.toAST({})
-            const feature = (ast.parameters[1].type as any).members[0]
+            const feature = (ast.parameters[1].type as any).members.filter(
+              p => p.name.escapedText == 'feature'
+            )[0]
 
             expect(feature.questionToken).toBeUndefined()
-            expect(feature.type.types).toEqual(
-              expect.arrayContaining([
-                expect.objectContaining({
-                  literal: expect.objectContaining({
-                    "text": "SomeFeatureName"
-                  })
-                }),
-                expect.objectContaining({
-                  literal: expect.objectContaining({
-                    "text": "AnotherFeature"
-                  })
-                })
-              ])
-            )
           })
 
-          it('sets a constant when theres only one option', () => {
+          it('restricts the options to ScreenName', () => {
             const track = new EventTypes.Screen({
               key: "Test&Event",
               name: "Test And Event",
               features: [
               ],
-              properties: {
-                thing: {
-                  type: 'object',
-                  properties: {
-                    subthing: {
-                      type: 'string',
-                      enum: ['one', 'two', 'three']
-                    }
-                  }
-                }
-              }
+              properties: {}
             } as InputTypes.ScreenDefinition)
 
             track.features.push(
@@ -163,20 +137,30 @@ describe(functions.AnalyticsFunction, () => {
                 name: "SomeFeatureName"
               } as EventTypes.Feature
             )
+            track.features.push(
+              {
+                name: "AnotherFeature"
+              } as EventTypes.Feature
+            )
 
             const fn = new functions.AnalyticsFunction(track)
             const ast = fn.toAST({})
-            const feature = (ast.parameters[1].type as any).members[0]
+            const feature = (ast.parameters[1].type as any).members.filter(
+              p => p.name.escapedText == 'feature'
+            )[0]
 
-            expect(feature.type.literal.text).toEqual('SomeFeatureName')
-            expect(feature.questionToken).not.toBeUndefined()
+            expect(feature.type.typeName.escapedText).toEqual('FeatureNames')
+
           })
         })
 
         describe('screen', () => {
-          const feature = (ast.parameters[1].type as any ).members[1]
+          const screen = (ast.parameters[1].type as any).members.filter(
+            p => p.name.escapedText == 'screen'
+          )[0]
+
           it('is named "screen"', () => {
-            expect(feature).toEqual(
+            expect(screen).toEqual(
               expect.objectContaining({
                 name: expect.objectContaining({
                   escapedText: "screen"
@@ -186,11 +170,11 @@ describe(functions.AnalyticsFunction, () => {
           })
 
           it('sets screen required by default', () => {
-            expect(feature.questionToken).toBeUndefined()
+            expect(screen.questionToken).toBeUndefined()
           })
 
           it('restricts to ScreenNames when unknown', () => {
-            expect(feature.type.typeName.escapedText).toEqual("ScreenNames")
+            expect(screen.type.typeName.escapedText).toEqual("ScreenNames")
           })
 
           it('is an enum\'ish when there are 2 or more options', () => {
@@ -229,7 +213,11 @@ describe(functions.AnalyticsFunction, () => {
 
             const fn = new functions.AnalyticsFunction(track)
             const ast = fn.toAST({})
-            const screen = (ast.parameters[1].type as any).members[1]
+            const screen = (ast.parameters[1].type as any).members.filter(
+              p => p.name.escapedText == 'screen'
+            )[0]
+
+
 
             expect(screen.name.escapedText).toEqual('screen')
             expect(screen.type.types.constructor.name).toBe('Array')
@@ -281,7 +269,9 @@ describe(functions.AnalyticsFunction, () => {
 
             const fn = new functions.AnalyticsFunction(track)
             const ast = fn.toAST({})
-            const screen = (ast.parameters[1].type as any).members[1]
+            const screen = (ast.parameters[1].type as any).members.filter(
+              p => p.name.escapedText == 'screen'
+            )[0]
 
             expect(screen.type.literal.text).toEqual('SomeScreen')
             expect(screen.questionToken).not.toBeUndefined()
