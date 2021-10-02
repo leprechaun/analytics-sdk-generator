@@ -57,6 +57,14 @@ export class Event {
     this.key = definition.key
     this.name = definition.name || definition.key
 
+    this.properties = this.parseProperties(definition)
+
+    if('description' in definition) {
+      this.description = definition.description
+    }
+  }
+
+  parseProperties(definition: EventDefinition) {
     const propertiesObjectDefinition = {
       type: "object",
       properties: definition.properties == undefined ? {} : definition.properties,
@@ -65,13 +73,10 @@ export class Event {
     } as ObjectDefinition
 
 
-    this.properties = TypeMapper.toSpecificType(
+    return TypeMapper.toSpecificType(
       propertiesObjectDefinition as ObjectDefinition
     ) as ObjectType
 
-    if('description' in definition) {
-      this.description = definition.description
-    }
   }
 
   escapeKey() {
@@ -105,7 +110,6 @@ export class Event {
       screens: screenNames
     }
   }
-
 
   sourceToObjectType() {
     const properties = {}
