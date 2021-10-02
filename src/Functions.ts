@@ -14,6 +14,18 @@ type ToASTOptions = {
   importMappings?: ImportMappings
 }
 
+class BaseEvent {
+  comment(event: Screen | Track) {
+    const nodes = []
+
+    if(event.description) {
+      nodes.push(factory.createJSDocComment(event.description))
+    }
+
+    return nodes
+  }
+}
+
 export class AnalyticsFunction {
   event: Track | Screen
 
@@ -103,56 +115,51 @@ export class AnalyticsFunction {
 }
 
 
-export class TrackAnalyticsFunction {
+export class TrackAnalyticsFunction extends BaseEvent {
   track: Track
 
   constructor(track: Track) {
+    super()
     this.track = track
   }
 
   toAST(options?: ToASTOptions) {
-    const nodes = []
-
-    if(this.track.description) {
-      nodes.push(factory.createJSDocComment(this.track.description))
-    }
-
-    nodes.push(factory.createVariableStatement(
-      [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      factory.createVariableDeclarationList(
-        [factory.createVariableDeclaration(
-          factory.createIdentifier(this.track.escapeKey()),
-          undefined,
-          undefined,
-          new AnalyticsFunction(this.track).toAST({
-            ...options
-          })
-        )],
-        ts.NodeFlags.Const
+    const comment = this.comment(this.track)
+    const main = [
+      factory.createVariableStatement(
+        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+        factory.createVariableDeclarationList(
+          [factory.createVariableDeclaration(
+            factory.createIdentifier(this.track.escapeKey()),
+            undefined,
+            undefined,
+            new AnalyticsFunction(this.track).toAST({
+              ...options
+            })
+          )],
+          ts.NodeFlags.Const
+        )
       )
-    ))
+    ]
 
-    return nodes
+    return comment.concat(main)
   }
 }
 
-export class ScreenSpecificTrackAnalyticsFunction {
+export class ScreenSpecificTrackAnalyticsFunction extends BaseEvent {
   track: Track
   screen: Screen
 
   constructor(track: Track, screen: Screen) {
+    super()
     this.track = track
     this.screen = screen
   }
 
   toAST(options?: ToASTOptions) {
-    const nodes = []
+    const comment = this.comment(this.track)
 
-    if(this.track.description) {
-      nodes.push(factory.createJSDocComment(this.track.description))
-    }
-
-    nodes.push(factory.createVariableStatement(
+    const main = [factory.createVariableStatement(
       [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       factory.createVariableDeclarationList(
         [factory.createVariableDeclaration(
@@ -165,27 +172,23 @@ export class ScreenSpecificTrackAnalyticsFunction {
         )],
         ts.NodeFlags.Const
       )
-    ))
+    )]
 
-    return nodes
+    return comment.concat(main)
   }
 }
 
-export class ScreenAnalyticsFunction {
+export class ScreenAnalyticsFunction extends BaseEvent {
   screen: Screen
 
   constructor(screen: Screen) {
+    super()
     this.screen = screen
   }
 
   toAST(options?: ToASTOptions): ts.Node[] {
-    const nodes = []
-
-    if(this.screen.description) {
-      nodes.push(factory.createJSDocComment(this.screen.description))
-    }
-
-    nodes.push(
+    const comment = this.comment(this.screen)
+    const main = [
       factory.createExportAssignment(
         undefined,
         undefined,
@@ -194,7 +197,14 @@ export class ScreenAnalyticsFunction {
           ...options
         })
       )
-    )
+    ]
+
+    const tracks = this.tracks()
+    return comment.concat(main).concat(tracks)
+  }
+
+  tracks(options?: ToASTOptions) {
+    const nodes = []
 
     if(this.screen.tracks.length > 0) {
       for(const track of this.screen.tracks) {
