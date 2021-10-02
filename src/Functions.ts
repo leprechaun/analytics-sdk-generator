@@ -1,9 +1,7 @@
 import ts, {factory } from 'typescript'
 
 import { Screen, Track } from './EventTypes'
-import { NamedType, PrintableDataType, ObjectType, ObjectProperty, Constant, StringType } from './Types'
-import * as InputTypes from './InputTypes'
-import TypeMapper from './TypeMapper'
+import { ObjectType } from './Types'
 
 type ImportMapping = string[]
 
@@ -23,35 +21,33 @@ export class AnalyticsFunction {
     this.event = definition
   }
 
-  propsParameter(properties: ObjectType, options: ToASTOptions) {
+  parameter(name: string, type, optional = false) {
     return factory.createParameterDeclaration(
       undefined,
       undefined,
       undefined,
-      factory.createIdentifier("props"),
-      undefined,
-      properties.toAST(options),
+      factory.createIdentifier(name),
+      optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
+      type as ts.TypeNode,
       undefined
     )
   }
 
+  propsParameter(properties: ObjectType, options: ToASTOptions) {
+    return this.parameter("props", properties.toAST(options), false)
+  }
+
   sourceParameter(options?: ToASTOptions) {
-    return factory.createParameterDeclaration(
-      undefined,
-      undefined,
-      undefined,
-      factory.createIdentifier("source"),
-      factory.createToken(ts.SyntaxKind.QuestionToken),
+    return this.parameter(
+      "source",
       factory.createTypeLiteralNode(
         this.event.sourceToObjectType().toAST(options).members
       ),
-      undefined
+      true
     )
   }
 
   toAST(options?: ToASTOptions) {
-    const block = this.functionBlock(options)
-
     let implementation: ts.ExpressionStatement | ts.CallExpression
     const params = [
         factory.createStringLiteral(this.event.type),
@@ -103,33 +99,6 @@ export class AnalyticsFunction {
       undefined,
       params
     )
-  }
-
-  stringVariable(name: string, value: string) {
-    return factory.createVariableStatement(
-      undefined,
-      factory.createVariableDeclarationList(
-        [factory.createVariableDeclaration(
-          factory.createIdentifier(name),
-          undefined,
-          undefined,
-          factory.createStringLiteral(value)
-        )],
-        ts.NodeFlags.Const | ts.NodeFlags.AwaitContext | ts.NodeFlags.ContextFlags | ts.NodeFlags.TypeExcludesFlags
-      )
-    )
-  }
-
-  eventType() {
-    return this.stringVariable("type", this.event.type)
-  }
-
-  eventName() {
-    return this.stringVariable("name", this.event.name)
-  }
-
-  functionBlock(options: ToASTOptions): any[] {
-    return []
   }
 }
 

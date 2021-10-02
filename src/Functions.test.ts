@@ -1,295 +1,212 @@
-import ts from 'typescript'
+import ts, { factory } from 'typescript'
 import * as functions from './Functions'
 import * as EventTypes from './EventTypes'
 import * as InputTypes from './InputTypes'
+import * as Types from './Types'
+import TypeMapper from './TypeMapper'
 
 describe(functions.AnalyticsFunction, () => {
-  const track = new EventTypes.Track({
-    key: "Test&Event",
-    name: "Test And Event",
-    properties: {
-      thing: {
+  const properties = {
+    thing: {
+      type: 'string',
+      enum: ['hello']
+    }
+  }
+
+  const defaultPropsCall = {
+    type: 'object',
+    properties,
+    required: [],
+    additionalProperties: false
+  } 
+
+  let track: EventTypes.Track
+  let trackProps
+  let trackPropsToAST
+  let trackSource
+  let trackSourceToAST
+  let sourceToPartialLiteralAST
+  let fn: functions.AnalyticsFunction
+  let ast: any
+
+  let spyTrackPropsToAST
+  let spySourceToObjectType
+  let spyTrackSourceToPartialLiteralAST
+
+  let partialLiteralAST
+
+  beforeEach( () => {
+    track = new EventTypes.Track({
+      key: "Test&Event",
+      name: "Test And Event",
+      properties
+    } as InputTypes.TrackDefinition)
+
+    trackProps = TypeMapper.toSpecificType(
+      defaultPropsCall as InputTypes.ObjectDefinition
+    ).toAST({})
+
+    trackSource = (TypeMapper.toSpecificType(
+      {
         type: 'object',
         properties: {
-          subthing: {
-            type: 'string',
-            enum: ['one', 'two', 'three']
+          lolsource: {
+            type: 'string'
           }
         }
-      },
-      anotherthing: {
-        type: 'string'
-      }
-    }
-  } as InputTypes.TrackDefinition)
+      } as InputTypes.ObjectDefinition
+    )) as Types.ObjectType
 
-  const fn = new functions.AnalyticsFunction(track)
-  const ast = fn.toAST({})
+    partialLiteralAST = trackSource.toPartialLiteralAST()
 
-  it('returns an arrow function', () => {
-    expect(ts.isArrowFunction(ast)).toBeTruthy()
+    spyTrackPropsToAST = jest.spyOn(track.properties, 'toAST')
+    spyTrackPropsToAST.mockReturnValueOnce(trackProps)
+
+    spySourceToObjectType = jest.spyOn(track, 'sourceToObjectType')
+    spySourceToObjectType.mockReturnValue(trackSource)
+
+    spyTrackSourceToPartialLiteralAST = jest.spyOn(trackSource, 'toPartialLiteralAST')
+    spyTrackSourceToPartialLiteralAST.mockReturnValueOnce(partialLiteralAST)
+
+    fn = new functions.AnalyticsFunction(track)
+    ast = fn.toAST({hasImplementation: false})
   })
 
-  describe('function', () => {
-    describe('input', () => {
-      describe('properties', () => {
-        const props = ast.parameters[0] as any
+  afterEach( () => {
+    (track.properties.toAST as any).mockReset()
+  })
 
-        it('takes `props` as first required argument', () => {
-          expect((props.name as ts.Identifier).escapedText).toEqual('props')
-          expect(ast.parameters[0].questionToken).toBeUndefined()
-        })
+  it('returns an arrow function', () => {
+    expect(ast.kind).toEqual(210)
+  })
 
-        it('is an object', () => {
-          expect(props.type).toBeTruthy()
-          expect(ts.isTypeNode(props.type)).toBeTruthy()
-          expect(props.kind).toEqual(161)
-        })
+  it('gets marked as async', () => {
+    expect(ast.modifiers[0].kind).toEqual(129)
+  })
 
-        describe('properties properties', () => {
-          it('has thing', () => {
-            const thing = props.type.members[0]
-            expect(thing.name.escapedText).toEqual('thing')
-            expect(thing.type.kind).toEqual(178)
-          })
+  describe('parameters', () => {
+    let propsParameter
+    let sourceParameter
 
-          it('has anotherthing', () => {
-            const thing = props.type.members[1]
-            expect(thing.name.escapedText).toEqual('anotherthing')
-            expect(thing.type.kind).toEqual(147)
-          })
-        })
+    beforeEach( () => {
+      propsParameter = ast.parameters[0]
+      sourceParameter = ast.parameters[1]
+    })
+
+    describe('properties', () => {
+      it('casts an expanded props object', () => {
+        expect(spyTrackPropsToAST).toHaveBeenCalled()
       })
 
-      describe('source', () => {
-        it('takes `source` as second optional argument', () => {
-          expect((ast.parameters[1].name as any).escapedText).toEqual('source')
-          expect(ast.parameters[1].questionToken).not.toBeUndefined()
+      it('has props as first argument', () => {
+        expect(propsParameter.name.escapedText).toEqual('props')
+      })
+
+      it('marks props as required', () => {
+        expect(propsParameter.questionToken).toBeUndefined()
+      })
+
+      it('sets whatever that returns to the props parameter', () => {
+        expect(propsParameter.type.members).toEqual(trackProps.members)
+      })
+    })
+
+    describe('source', () => {
+      it('has source as second argument', () => {
+        expect(sourceParameter.name.escapedText).toEqual('source')
+      })
+
+      it('marks source as optional', () => {
+        expect(sourceParameter.questionToken).not.toBeUndefined()
+      })
+
+      it('calls track.sourceToObjectType', () => {
+        expect(track.sourceToObjectType).toHaveBeenCalled()
+      })
+
+      it('sets whatever that returns to the props parameter', () => {
+        expect(sourceParameter.type.members).toEqual(trackSource.toAST().members)
+      })
+    })
+  })
+
+  describe('body', () => {
+    describe('w/out implementation', () => {
+      it('calls console.log', () => {
+        expect(ast.body.statements[0].expression.expression.escapedText).toEqual("console")
+        expect(ast.body.statements[0].expression.name.escapedText).toEqual("log")
+      })
+
+      describe('parameters', () => {
+        it('has type as first parameter', () => {
+          expect(ast.body.statements[0].arguments[0].text).toEqual('track')
+
         })
 
-        describe('feature', () => {
-          const feature = (ast.parameters[1].type as any ).members.filter(
-            p => p.name.escapedText == 'feature'
-          )[0]
-
-          it('is named "feature"', () => {
-            expect(feature).toEqual(
-              expect.objectContaining({
-                name: expect.objectContaining({
-                  escapedText: "feature"
-                })
-              })
-            )
-          })
-
-          it('sets feature required by default', () => {
-            expect(feature.questionToken).toBeUndefined()
-          })
-
-          it('restricts to FeatureNames when unknown', () => {
-            expect(feature.type.typeName.escapedText).toEqual("FeatureNames")
-          })
-
-          it('sets feature as required', () => {
-            expect(feature.questionToken).toBeUndefined()
-          })
-
-          it('is required when there are not just one option', () => {
-            const track = new EventTypes.Screen({
-              key: "Test&Event",
-              name: "Test And Event",
-              features: [
-              ],
-              properties: {}
-            } as InputTypes.ScreenDefinition)
-
-            track.features.push(
-              {
-                name: "SomeFeatureName"
-              } as EventTypes.Feature
-            )
-            track.features.push(
-              {
-                name: "AnotherFeature"
-              } as EventTypes.Feature
-            )
-
-            const fn = new functions.AnalyticsFunction(track)
-            const ast = fn.toAST({})
-            const feature = (ast.parameters[1].type as any).members.filter(
-              p => p.name.escapedText == 'feature'
-            )[0]
-
-            expect(feature.questionToken).toBeUndefined()
-          })
-
-          it('restricts the options to ScreenName', () => {
-            const track = new EventTypes.Screen({
-              key: "Test&Event",
-              name: "Test And Event",
-              features: [
-              ],
-              properties: {}
-            } as InputTypes.ScreenDefinition)
-
-            track.features.push(
-              {
-                name: "SomeFeatureName"
-              } as EventTypes.Feature
-            )
-            track.features.push(
-              {
-                name: "AnotherFeature"
-              } as EventTypes.Feature
-            )
-
-            const fn = new functions.AnalyticsFunction(track)
-            const ast = fn.toAST({})
-            const feature = (ast.parameters[1].type as any).members.filter(
-              p => p.name.escapedText == 'feature'
-            )[0]
-
-            expect(feature.type.typeName.escapedText).toEqual('FeatureNames')
-
-          })
+        it('has name as second parameter', () => {
+          expect(ast.body.statements[0].arguments[1].text).toEqual('Test And Event')
         })
 
-        describe('screen', () => {
-          const screen = (ast.parameters[1].type as any).members.filter(
-            p => p.name.escapedText == 'screen'
-          )[0]
+        it('has props as third parameter', () => {
+          expect(ast.body.statements[0].arguments[2].escapedText).toEqual('props')
+        })
 
-          it('is named "screen"', () => {
-            expect(screen).toEqual(
-              expect.objectContaining({
-                name: expect.objectContaining({
-                  escapedText: "screen"
-                })
-              })
-            )
-          })
+        it('overwrites source with defaults as 4th argument', () => {
+          expect(ast.body.statements[0].arguments[3].kind).toEqual(201)
+        })
+      })
+    })
 
-          it('sets screen required by default', () => {
-            expect(screen.questionToken).toBeUndefined()
-          })
+    describe('w/ implementation', () => {
+      beforeEach( () => {
+        ast = fn.toAST({hasImplementation: true})
+      })
 
-          it('restricts to ScreenNames when unknown', () => {
-            expect(screen.type.typeName.escapedText).toEqual("ScreenNames")
-          })
+      it('calls implementation', () => {
+        expect(ast.body.statements[0].expression.expression.expression.escapedText).toEqual("implementation")
+      })
 
-          it('is an enum\'ish when there are 2 or more options', () => {
-            const track = new EventTypes.Track({
-              key: "Test&Event",
-              name: "Test And Event",
-              features: [
-              ],
-              properties: {
-                thing: {
-                  type: 'object',
-                  properties: {
-                    subthing: {
-                      type: 'string',
-                      enum: ['one', 'two', 'three']
-                    }
-                  }
-                }
-              }
-            } as InputTypes.TrackDefinition)
+      describe('parameters', () => {
+        it('has type as first parameter', () => {
+          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('track')
+        })
 
-            track.screens.push(
-              {
-                key: "SomeScreen",
-                name: "SomeScreen",
-                features: [{name:"SomeFeature"}]
-              } as EventTypes.Screen
-            )
-            track.screens.push(
-              {
-                key: "AnotherScreen",
-                name: "AnotherScreen",
-                features: [{name:"AnotherFeature"}]
-              } as EventTypes.Screen
-            )
+        it('has name as second parameter', () => {
+          expect(ast.body.statements[0].expression.expression.arguments[1].text).toEqual('Test And Event')
+        })
 
-            const fn = new functions.AnalyticsFunction(track)
-            const ast = fn.toAST({})
-            const screen = (ast.parameters[1].type as any).members.filter(
-              p => p.name.escapedText == 'screen'
-            )[0]
+        it('has props as third parameter', () => {
+          expect(ast.body.statements[0].expression.expression.arguments[2].escapedText).toEqual('props')
+        })
 
+        it('overwrites source with defaults as 4th argument', () => {
+          const source = ast.body.statements[0].expression.expression.arguments[3]
+          expect(source.kind).toEqual(201)
+          expect(source.properties[ source.properties.length - 1].kind).toEqual(291)
+          expect(source.properties[ source.properties.length - 1].expression.escapedText).toEqual("source")
+        })
+      })
+    })
 
+    describe('varies `type` accordingly', () => {
+      let screen
+      let ast
 
-            expect(screen.name.escapedText).toEqual('screen')
-            expect(screen.type.types.constructor.name).toBe('Array')
-            expect(screen.type.types.length).toBe(2)
-            expect(screen.type.types).toEqual(
-              expect.arrayContaining([
-                expect.objectContaining({
-                  literal: expect.objectContaining({
-                    "text": "SomeScreen"
-                  })
-                }),
-                expect.objectContaining({
-                  literal: expect.objectContaining({
-                    "text": "AnotherScreen"
-                  })
-                })
-              ])
-            )
-          })
+      beforeEach( () => {
+        screen = new EventTypes.Screen({
+          key: "Test&Event",
+          name: "Test And Event",
+          properties
+        } as InputTypes.TrackDefinition)
 
-          it('sets a constant when theres only one option', () => {
-            const thing = {
-              type: 'object',
-              properties: {
-                subthing: {
-                  type: 'string',
-                  enum: ['one', 'two', 'three']
-                }
-              }
-            } as InputTypes.TypeDefinition
+        ast = new functions.AnalyticsFunction(screen).toAST({hasImplementation: true})
+      })
 
-            const properties = { thing }
-
-
-            const track = new EventTypes.Track({
-              key: "Test&Event",
-              name: "Test And Event",
-              features: [],
-              properties
-            } as InputTypes.TrackDefinition)
-
-            track.screens.push(
-              {
-                key: "SomeScreen",
-                name: "SomeScreen",
-                features: [{name:"SomeFeature"}]
-              } as EventTypes.Screen
-            )
-
-            const fn = new functions.AnalyticsFunction(track)
-            const ast = fn.toAST({})
-            const screen = (ast.parameters[1].type as any).members.filter(
-              p => p.name.escapedText == 'screen'
-            )[0]
-
-            expect(screen.type.literal.text).toEqual('SomeScreen')
-            expect(screen.questionToken).not.toBeUndefined()
-          })
+      describe('parameters', () => {
+        it('has type as first parameter', () => {
+          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('screen')
         })
       })
     })
   })
-})
-
-describe.skip(functions.TrackAnalyticsFunction, () => {
-
-})
-
-describe.skip(functions.ScreenAnalyticsFunction, () => {
-
-})
-
-describe.skip(functions.ScreenSpecificTrackAnalyticsFunction, () => {
-
 })
