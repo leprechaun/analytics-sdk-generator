@@ -210,3 +210,132 @@ describe(functions.AnalyticsFunction, () => {
     })
   })
 })
+
+describe(functions.ScreenAnalyticsFunction, () => {
+  const screen = new EventTypes.Screen({
+    key: "SomeScreen",
+    name: "Some Screen"
+  })
+  const fn = new functions.ScreenAnalyticsFunction(screen)
+
+  describe('a bare screen without tracks', () => {
+    const ast = fn.toAST({})
+    const main = ast[0]
+
+    it('just has one statement', () => {
+      expect((ast as any).length).toEqual(1)
+    })
+
+    it('default exports an AnalyticsFunction', () => {
+      expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
+      expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+      expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
+    })
+
+    describe('a bare screen and description without tracks', () => {
+      const screen = new EventTypes.Screen({
+        key: "SomeScreen",
+        name: "Some Screen",
+        description: "blah blah"
+      })
+      const fn = new functions.ScreenAnalyticsFunction(screen)
+
+      const ast = fn.toAST({})
+      const comment = ast[0]
+      const main = ast[1]
+
+      it('has two statements', () => {
+        expect((ast as any).length).toEqual(2)
+      })
+
+      it('has a jsdoc as first statement', () => {
+        expect(comment.kind).toEqual(ts.SyntaxKind.JSDocComment)
+        expect((comment as any).comment).toEqual('blah blah')
+      })
+
+      it('default exports an AnalyticsFunction', () => {
+        expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
+        expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+        expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
+      })
+    })
+  })
+
+  describe('screen with a couple tracks', () => {
+    const screen = new EventTypes.Screen({
+      key: "SomeScreen",
+      name: "Some Screen"
+    })
+    screen.tracks.push(new EventTypes.Track({
+      key: "sometrack"
+    }))
+    screen.tracks.push(new EventTypes.Track({
+      key: "anothertrack"
+    }))
+
+    const fn = new functions.ScreenAnalyticsFunction(screen)
+
+    describe('a bare screen without tracks', () => {
+      const ast = fn.toAST({})
+      const main = ast[0]
+
+      it('has one statement for each', () => {
+        expect((ast as any).length).toEqual(3)
+      })
+
+      it('default exports an AnalyticsFunction', () => {
+        expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
+        expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+        expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
+      })
+
+      it('exports named functions for each track', () => {
+        expect(ast[1].kind).toEqual(ts.SyntaxKind.VariableStatement)
+        expect((ast[1] as any).declarationList.declarations.length).toEqual(1)
+        expect((ast[1] as any).declarationList.declarations[0].name.escapedText).toEqual('sometrack')
+      })
+
+      it('exports named functions for each track', () => {
+        expect(ast[2].kind).toEqual(ts.SyntaxKind.VariableStatement)
+        expect((ast[2] as any).declarationList.declarations.length).toEqual(1)
+        expect((ast[2] as any).declarationList.declarations[0].name.escapedText).toEqual('anothertrack')
+      })
+    })
+  })
+})
+
+describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
+  const screen = new EventTypes.Screen({
+    key: "SomeScreen",
+    name: "Some Screen"
+  })
+
+  const track = new EventTypes.Track({
+    key: "SomeTrack",
+    name: "Some Track",
+    description: "hello world"
+  })
+
+  const fn = new functions.ScreenSpecificTrackAnalyticsFunction(track, screen)
+
+  const ast = fn.toAST({})
+  const comment = ast[0]
+  const main = ast[1]
+
+  const declaration = main.declarationList.declarations[0]
+
+  it('has a comment', () => {
+    expect(comment.kind).toEqual(ts.SyntaxKind.JSDocComment)
+    expect((comment as any).comment).toEqual('hello world')
+  })
+
+  it('exports a function named with $key', () => {
+    expect(declaration.name.escapedText).toEqual("SomeTrack")
+    expect(declaration.initializer.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+  })
+
+  it('should use AnalyticsFunction', () => {
+    expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({}))
+  })
+
+})
