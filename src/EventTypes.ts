@@ -111,6 +111,28 @@ export class Event {
     }
   }
 
+  toEnumAndRequired(options: string[], fallback: string, useFallback = false): [boolean, {type: 'string', enum: string[]} |  {$ref: string} ] {
+    let required = true
+    let type: {type: 'string', enum: string[]} | { $ref: string }
+
+    if(options.length > 0 && !useFallback ) {
+      type = {
+        type: 'string',
+        enum: options
+      }
+
+      if(options.length == 1) {
+        required = false
+      }
+    } else {
+      type = {
+        $ref: `#/$defs/${fallback}`
+      }
+    }
+
+    return [required, type]
+  }
+
   sourceToObjectType() {
     const properties = {}
     const required = []
@@ -121,35 +143,16 @@ export class Event {
 
     const screensAndFeatures = this.uniqueFeaturesAndScreens()
 
-    if(this.type != 'screen' && screensAndFeatures.screens.length > 0) {
-      properties['screen'] = {
-        type: 'string',
-        enum: screensAndFeatures.screens as string[]
-      }
+    const [screenRequired, screenType] = this.toEnumAndRequired(screensAndFeatures.screens, "ScreenNames")
 
-      if(screensAndFeatures.screens.length > 1) {
-        required.push('screen')
-      }
-    } else {
-      properties['screen'] = {
-        $ref: "#/$defs/ScreenNames"
-      }
+    properties['screen'] = screenType
+    if(screenRequired) {
       required.push('screen')
     }
 
-    if(this.type != 'screen' && screensAndFeatures.features.length > 0) {
-      properties['feature'] = {
-        type: 'string',
-        enum: screensAndFeatures.features as string[]
-      }
-
-      if(screensAndFeatures.features.length > 1) {
-        required.push('feature')
-      }
-    } else {
-      properties['feature'] = {
-        $ref: "#/$defs/FeatureNames"
-      }
+    const [featureRequired, featureType] = this.toEnumAndRequired(screensAndFeatures.features, "FeatureNames")
+    properties['feature'] = featureType
+    if(featureRequired) {
       required.push('feature')
     }
 
