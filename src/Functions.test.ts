@@ -275,7 +275,7 @@ describe(functions.ScreenAnalyticsFunction, () => {
 
     const fn = new functions.ScreenAnalyticsFunction(screen)
 
-    describe('a bare screen without tracks', () => {
+    describe('the screen', () => {
       const ast = fn.toAST({})
       const main = ast[0]
 
@@ -288,6 +288,18 @@ describe(functions.ScreenAnalyticsFunction, () => {
         expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
         expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
       })
+
+      it('calls tracks with the same ToASTOptions', () => {
+        const saf = new functions.ScreenAnalyticsFunction(screen)
+        jest.spyOn(saf, 'tracks')
+
+        const toASTOptions = {importMappings: {"$defs": ['foo', 'bar']}}
+
+        saf.toAST(toASTOptions)
+
+        expect(saf.tracks).toHaveBeenCalledWith(toASTOptions)
+      })
+
 
       it('exports named functions for each track', () => {
         expect(ast[1].kind).toEqual(ts.SyntaxKind.VariableStatement)

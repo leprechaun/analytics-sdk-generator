@@ -50,14 +50,14 @@ export class AnalyticsFunction {
     this.event = definition
   }
 
-  parameter(name: string, type, optional = false) {
+  parameter(name: string, type: ts.TypeNode, optional = false) {
     return factory.createParameterDeclaration(
       undefined,
       undefined,
       undefined,
       factory.createIdentifier(name),
       optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
-      type as ts.TypeNode,
+      type,
       undefined
     )
   }
@@ -187,7 +187,7 @@ export class ScreenAnalyticsFunction extends BaseEvent {
       )
     ]
 
-    const tracks = this.tracks()
+    const tracks = this.tracks(options)
     return comment.concat(main).concat(tracks)
   }
 
