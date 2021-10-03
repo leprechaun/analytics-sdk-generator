@@ -1,6 +1,6 @@
 # Analytics-SDK Generator
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/maintainability)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/test_coverage)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/test_coverage) [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fleprechaun%2Fanalytics-sdk-generator%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/leprechaun/analytics-sdk-generator/master)
+[![Maintainability](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/maintainability)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/f17aec547af3af22902c/test_coverage)](https://codeclimate.com/github/leprechaun/analytics-sdk-generator/test_coverage) [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fleprechaun%2Fanalytics-sdk-generator%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/leprechaun/analytics-sdk-generator/master) [![npm version](https://badge.fury.io/js/analytics-sdk-generator.svg)](https://www.npmjs.com/package/analytics-sdk-generator)
 
 This project is a convenience for developers, data analysts and engineers alike.
 
