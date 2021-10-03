@@ -24,6 +24,23 @@ class BaseEvent {
 
     return nodes
   }
+
+  asNamedExport(event: Screen | Track, options: ToASTOptions) {
+    return [factory.createVariableStatement(
+      [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+      factory.createVariableDeclarationList(
+        [factory.createVariableDeclaration(
+          factory.createIdentifier(event.escapeKey()),
+          undefined,
+          undefined,
+          new AnalyticsFunction(event).toAST({
+            ...options
+          })
+        )],
+        ts.NodeFlags.Const
+      )
+    )]
+  }
 }
 
 export class AnalyticsFunction {
@@ -125,22 +142,7 @@ export class TrackAnalyticsFunction extends BaseEvent {
 
   toAST(options?: ToASTOptions) {
     const comment = this.comment(this.track)
-    const main = [
-      factory.createVariableStatement(
-        [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-        factory.createVariableDeclarationList(
-          [factory.createVariableDeclaration(
-            factory.createIdentifier(this.track.escapeKey()),
-            undefined,
-            undefined,
-            new AnalyticsFunction(this.track).toAST({
-              ...options
-            })
-          )],
-          ts.NodeFlags.Const
-        )
-      )
-    ]
+    const main = this.asNamedExport(this.track, options)
 
     return comment.concat(main)
   }
@@ -158,21 +160,7 @@ export class ScreenSpecificTrackAnalyticsFunction extends BaseEvent {
 
   toAST(options?: ToASTOptions) {
     const comment = this.comment(this.track)
-
-    const main = [factory.createVariableStatement(
-      [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      factory.createVariableDeclarationList(
-        [factory.createVariableDeclaration(
-          factory.createIdentifier(this.track.escapeKey()),
-          undefined,
-          undefined,
-          new AnalyticsFunction(this.track).toAST({
-            ...options
-          })
-        )],
-        ts.NodeFlags.Const
-      )
-    )]
+    const main = this.asNamedExport(this.track, options)
 
     return comment.concat(main)
   }
