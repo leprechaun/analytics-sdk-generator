@@ -21,24 +21,32 @@ export default class Transliterator {
     this.options = options
   }
 
-  featureNamesType(plan: TrackingPlan) {
+  sharedEnum(path: string[], name: string, values: string[], description: string) {
     return {
-      path: ['shared-definitions'],
-      nodes: new NamedType("FeatureNames", TypeMapper.toSpecificType({
+      path,
+      nodes: new NamedType(name, TypeMapper.toSpecificType({
         type: 'string',
-        enum: plan.features.map( f => f.name as string )
-      }), "List of all the feature names").toAST()
+        enum: values,
+      }), description).toAST()
     }
   }
 
+  featureNamesType(plan: TrackingPlan) {
+    return this.sharedEnum(
+      ['shared-definitions'],
+      'FeatureNames',
+      plan.features.map( f => f.name as string ),
+      "List of all the feature names"
+    )
+  }
+
   screenNamesType(plan: TrackingPlan) {
-    return {
-      path: ['shared-definitions'],
-      nodes: new NamedType("ScreenNames", TypeMapper.toSpecificType({
-        type: 'string',
-        enum: plan.screens.map( s => s.name as string)
-      }), "List of all the screen names").toAST()
-    }
+    return this.sharedEnum(
+      ['shared-definitions'],
+      'ScreenNames',
+      plan.screens.map( f => f.name as string ),
+      "List of all the screen names"
+    )
   }
 
   screenFunction(screen: Screen, importMappings) {
