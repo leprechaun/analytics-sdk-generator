@@ -1,6 +1,6 @@
 import * as EventTypes from './EventTypes'
 import TypeMapper from './TypeMapper'
-import { ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
+import { EventDefinition, ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
 
 import {
   NamedType,
@@ -53,25 +53,32 @@ export default class TrackingPlan {
     }
   }
 
-  parseScreen(screens, key: string) {
-    const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
-
-    if('features' in screens[key]) {
-      for(const featureName of screens[key]['features']) {
+  addFeaturesToEvent(definition: EventDefinition, event: EventTypes.Screen | EventTypes.Track, featureKey: 'screens' | 'tracks') {
+    if('features' in definition) {
+      for(const featureName of definition['features']) {
         const feature = this.getFeature(featureName)
 
-        feature.addScreen(screen)
-        screen.features.push(feature)
+        feature[featureKey].push(event)
+        event.features.push(feature)
       }
     }
+  }
 
-    if('tracks' in screens[key]) {
-      for(const trackName of screens[key]['tracks']) {
+  addTracksToScreen(definition: EventDefinition, screen: EventTypes.Screen) {
+    if('tracks' in definition) {
+      for(const trackName of definition['tracks']) {
         const t = this.getTrack(trackName)
         screen.tracks.push(t.toScreenSpecific(screen))
         t.screens.push(screen)
       }
     }
+  }
+
+  parseScreen(screens, key: string) {
+    const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
+
+    this.addFeaturesToEvent(screens[key], screen, 'screens')
+    this.addTracksToScreen(screens[key], screen)
 
     return screen
   }
@@ -88,13 +95,7 @@ export default class TrackingPlan {
     for(const key in tracks) {
       const track = new EventTypes.Track({...tracks[key], key} as TrackDefinition)
 
-      if('features' in tracks[key]) {
-        for(const featureName of tracks[key]['features']) {
-          const feature = this.getFeature(featureName)
-          feature.addTrack(track)
-          track.features.push(feature)
-        }
-      }
+      this.addFeaturesToEvent(tracks[key], track, 'tracks')
 
       this.tracks.push(track)
     }
