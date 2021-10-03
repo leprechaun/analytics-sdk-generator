@@ -100,32 +100,30 @@ export default class TrackingPlan {
     }
   }
 
-  getFeature(featureName: string) {
-    const matchingFeatures = this.features.filter( f => f.name == featureName )
-    if(matchingFeatures.length == 0) {
-      const feature = new EventTypes.Feature(featureName)
-      this.features.push(feature)
-      return feature
+  getOrCreate(thing: 'features' | 'tracks' | 'screens', key: 'name' | 'key', name: string, newtype: any | undefined) {
+    const matches = this[thing as string].filter( (f: EventTypes.Screen | EventTypes.Feature | EventTypes.Track) => f[key] == name)
+    if(matches.length == 0) {
+      if(newtype) {
+        const newthing = new newtype(name)
+        this[thing as string].push(newthing)
+        return newthing
+      } else {
+        throw new Error(`Thing(${thing}/${name}) not found`)
+      }
     } else {
-      return matchingFeatures[0]
+      return matches[0]
     }
+  }
+
+  getFeature(featureName: string) {
+    return this.getOrCreate('features', 'name', featureName, EventTypes.Feature)
   }
 
   getTrack(trackName: string) {
-    const matchingTracks = this.tracks.filter( f => f.key == trackName )
-    if(matchingTracks.length == 0) {
-      throw new Error("Track not found: " + trackName)
-    } else {
-      return matchingTracks[0]
-    }
+    return this.getOrCreate('tracks', 'key', trackName, undefined)
   }
 
   getScreen(screenName: string) {
-    const matchingScreens = this.screens.filter( f => f.key == screenName )
-    if(matchingScreens.length == 0) {
-      throw new Error("Screen not found: " + screenName)
-    } else {
-      return matchingScreens[0]
-    }
+    return this.getOrCreate('screens', 'key', screenName, undefined)
   }
 }
