@@ -33,6 +33,69 @@ The transliterate command parses your analytics schema in `./src/example/example
 
 The format was designed to expose as much json-schema as possible, while reducing verbosity. Any event property, trait, or shared definition is intended to be full json-schema 2019-09, but implementation is incomplete.
 
+### Supported Types
+
+#### String
+
+```
+type: string
+enum: [...]
+format: $format
+```
+
+##### Enum
+
+Enums with only one option will be treated as a constant.
+
+##### Format
+
+For now, only `date-time` is supported.
+
+#### Number
+
+```
+type: number | integer
+```
+
+Because javascript doesnt' really distinguish between numbers and integers, they are effectively aliases. Downstream validation tooling can support that distinction, though.
+
+`min`, `max`, `multipleOf` and other constraints are not supported, but it could be done downstream.
+
+#### Array
+
+```
+type: array
+items: $TypeDefinition
+```
+
+Arrays can point to any supported type.
+
+`minItems`, `maxItems` is not supported. Perhaps it both `min` and `max` are supported, one could define a typescript tuple.
+
+#### Object
+
+```
+type: object
+required: []
+properties:
+  someprop: $TypeDefinition
+additionalProperties: false
+```
+
+There is basic support for objects. Properties can point to any supported typedefinition. AdditionalProperties is always assumed false, for the time being. Newer json-schema features on objects are not supported.
+
+#### OneOf
+
+```
+oneOf:
+  - TypeDefinition1
+  - TypeDefinition2
+```
+
+One of create a union type between any supported data type. Unions of only one type will result in only that one type.
+
+## File sections
+
 The file is divided in 4 sections.
 
 ### Header
