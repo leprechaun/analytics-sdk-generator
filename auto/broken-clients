@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+for f in ./failing-build-examples/*.ts; do
+  ./auto/dev-environment yarn ts-node $f
+  RETURN="$?"
+  echo "returned $RETURN"
+  if [ "$RETURN" = "0" ]; then
+    echo -- Test file build succeded when it shouldn\'t have.
+    exit 1
+  fi
+done
+

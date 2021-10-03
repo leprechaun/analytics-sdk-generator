@@ -51,6 +51,15 @@ pipelines:
                 - script: |
                     ./auto/audit --json --groups dependencies --level moderate
 
+            e2e-broken-clients:
+              tasks:
+                - script: |
+                    ./auto/clean-up || true
+                - script: |
+                    ./auto/yarn ts-node src/bin/cli.ts transliterate
+                    ./auto/broken-clients
+
+
   analytics-sdk-generator-extra-tests:
     group: analytics-sdk-generator
     label_template: "${upstream}"
