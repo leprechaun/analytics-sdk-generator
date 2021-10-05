@@ -57,8 +57,10 @@ pipelines:
                 - script: |
                     ./auto/clean-up || true
                 - script: |
+                    set -e
                     ./auto/yarn ts-node src/bin/cli.ts transliterate
                     ./auto/yarn test:e2e
+                    docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
 
 
   analytics-sdk-generator-extra-tests:
