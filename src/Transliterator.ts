@@ -64,6 +64,11 @@ export default class Transliterator {
     }
 
     nodes.push({
+      path: ['screens', screen.escapeKey()],
+      nodes: [this.reExportSharedDefs("../shared-definitions")]
+    })
+
+    nodes.push({
       path: [
         'screens',
         screen.escapeKey()
@@ -74,7 +79,7 @@ export default class Transliterator {
     return nodes
   }
 
-  screenFunctions(plan, importMappings) {
+  screenFunctions(plan: TrackingPlan, importMappings) {
     let nodes = []
     for(const screen of plan.screens) {
       nodes = nodes.concat(this.screenFunction(screen, importMappings))
@@ -96,6 +101,11 @@ export default class Transliterator {
         nodes: [this.importImplementation(this.options.implementation)]
       })
     }
+
+    nodes.push({
+      path: ['tracks'],
+      nodes: [this.reExportSharedDefs("./shared-definitions")]
+    })
 
     for(const track of plan.tracks) {
       nodes.push({
@@ -173,6 +183,16 @@ export default class Transliterator {
         factory.createIdentifier("implementation"),
         undefined
       ),
+      factory.createStringLiteral(path)
+    )
+  }
+
+  reExportSharedDefs(path: string) {
+    return factory.createExportDeclaration(
+      undefined,
+      undefined,
+      false,
+      factory.createNamespaceExport(factory.createIdentifier("Types")),
       factory.createStringLiteral(path)
     )
   }
