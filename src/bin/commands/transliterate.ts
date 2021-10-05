@@ -10,6 +10,7 @@ const module = {
     return yargs
       .describe('input', 'Schema file')
       .describe('implementation', "function file that gets called")
+      .describe('methodsAsync', "Whether the methods should be asynchronous or not (true by default)")
       .help('-h')
   },
 
@@ -17,7 +18,8 @@ const module = {
     const TC = new TransliterateCommand({
       schema_path: args.input,
       output: args.output,
-      implementation: args.implementation
+      implementation: args.implementation,
+      methodsAsync: !(args.methodsAsync == 'false')
     })
 
     TC.run()

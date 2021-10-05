@@ -203,7 +203,9 @@ export class ArrayType extends ComplexType {
 }
 
 type ToASTOptions = {
-  importMappings?: {[key: string]: string[]}
+  importMappings?: {
+    [key: string]: string[]
+  }
 }
 
 export class ObjectProperty {

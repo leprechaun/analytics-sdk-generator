@@ -11,7 +11,8 @@ type ImportMappings = {
 
 type ToASTOptions = {
   hasImplementation?: boolean,
-  importMappings?: ImportMappings
+  importMappings?: ImportMappings,
+  methodsAsync: boolean
 }
 
 class BaseEvent {
@@ -90,13 +91,15 @@ export class AnalyticsFunction {
     ]
 
     if(options.hasImplementation) {
-      implementation = this.specifiedImplementation(params)
+      implementation = this.specifiedImplementation(options, params)
     } else {
       implementation = this.emptyImplementation(params)
     }
 
+    const asynchronous = options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined
+
     return factory.createArrowFunction(
-      [factory.createModifier(ts.SyntaxKind.AsyncKeyword)],
+      asynchronous,
       undefined,
       [
         this.propsParameter(this.event.properties, options),
@@ -111,16 +114,28 @@ export class AnalyticsFunction {
     )
   }
 
-  specifiedImplementation(params: ts.Expression[]) {
-    return factory.createExpressionStatement(
-      factory.createAwaitExpression(
+  specifiedImplementation(options: ToASTOptions, params: ts.Expression[]) {
+    if(options.methodsAsync) {
+      return factory.createExpressionStatement(
+        factory.createAwaitExpression(
+          factory.createCallExpression(
+            factory.createIdentifier("implementation"),
+            undefined,
+            params
+            )
+        )
+      )
+    }
+    else {
+      return factory.createExpressionStatement(
         factory.createCallExpression(
           factory.createIdentifier("implementation"),
           undefined,
           params
-          )
+        )
       )
-    )
+    }
+
   }
 
   emptyImplementation(params: ts.Expression[]) {

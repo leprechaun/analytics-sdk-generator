@@ -69,7 +69,7 @@ describe(functions.AnalyticsFunction, () => {
     spyTrackSourceToPartialLiteralAST.mockReturnValueOnce(partialLiteralAST)
 
     fn = new functions.AnalyticsFunction(track)
-    ast = fn.toAST({hasImplementation: false})
+    ast = fn.toAST({hasImplementation: false, methodsAsync: true})
   })
 
   afterEach( () => {
@@ -80,8 +80,16 @@ describe(functions.AnalyticsFunction, () => {
     expect(ast.kind).toEqual(210)
   })
 
-  it('gets marked as async', () => {
-    expect(ast.modifiers[0].kind).toEqual(129)
+  describe('async/await', () => {
+    it('gets marked as async when `methodsAsync=true', () => {
+      ast = fn.toAST({hasImplementation: false, methodsAsync: true})
+      expect(ast.modifiers[0].kind).toEqual(ts.SyntaxKind.AsyncKeyword)
+    })
+
+    it('gets marked as sync when `methodsAsync=false`', () => {
+      ast = fn.toAST({hasImplementation: false, methodsAsync: false})
+      expect(ast.modifiers).toBeUndefined()
+    })
   })
 
   describe('parameters', () => {
@@ -159,7 +167,7 @@ describe(functions.AnalyticsFunction, () => {
 
     describe('w/ implementation', () => {
       beforeEach( () => {
-        ast = fn.toAST({hasImplementation: true})
+        ast = fn.toAST({hasImplementation: true, methodsAsync: true})
       })
 
       it('calls implementation', () => {
@@ -199,7 +207,7 @@ describe(functions.AnalyticsFunction, () => {
           properties
         } as InputTypes.TrackDefinition)
 
-        ast = new functions.AnalyticsFunction(screen).toAST({hasImplementation: true})
+        ast = new functions.AnalyticsFunction(screen).toAST({hasImplementation: true, methodsAsync: true})
       })
 
       describe('parameters', () => {
@@ -219,7 +227,7 @@ describe(functions.ScreenAnalyticsFunction, () => {
   const fn = new functions.ScreenAnalyticsFunction(screen)
 
   describe('a bare screen without tracks', () => {
-    const ast = fn.toAST({})
+    const ast = fn.toAST({methodsAsync: true})
     const main = ast[0]
 
     it('just has one statement', () => {
@@ -240,7 +248,7 @@ describe(functions.ScreenAnalyticsFunction, () => {
       })
       const fn = new functions.ScreenAnalyticsFunction(screen)
 
-      const ast = fn.toAST({})
+      const ast = fn.toAST({methodsAsync: true})
       const comment = ast[0]
       const main = ast[1]
 
@@ -256,7 +264,7 @@ describe(functions.ScreenAnalyticsFunction, () => {
       it('default exports an AnalyticsFunction', () => {
         expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
         expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-        expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
+        expect((main as any).expression.expression).toEqual((fn.toAST({methodsAsync: true})[0] as any).body)
       })
     })
   })
@@ -276,7 +284,7 @@ describe(functions.ScreenAnalyticsFunction, () => {
     const fn = new functions.ScreenAnalyticsFunction(screen)
 
     describe('the screen', () => {
-      const ast = fn.toAST({})
+      const ast = fn.toAST({methodsAsync: true})
       const main = ast[0]
 
       it('has one statement for each', () => {
@@ -286,14 +294,14 @@ describe(functions.ScreenAnalyticsFunction, () => {
       it('default exports an AnalyticsFunction', () => {
         expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
         expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-        expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
+        expect((main as any).expression.expression).toEqual((fn.toAST({methodsAsync: true})[0] as any).body)
       })
 
       it('calls tracks with the same ToASTOptions', () => {
         const saf = new functions.ScreenAnalyticsFunction(screen)
         jest.spyOn(saf, 'tracks')
 
-        const toASTOptions = {importMappings: {"$defs": ['foo', 'bar']}}
+        const toASTOptions = {importMappings: {"$defs": ['foo', 'bar']}, methodsAsync: true}
 
         saf.toAST(toASTOptions)
 
@@ -330,7 +338,7 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
 
   const fn = new functions.ScreenSpecificTrackAnalyticsFunction(track, screen)
 
-  const ast = fn.toAST({})
+  const ast = fn.toAST({methodsAsync: true})
   const comment = ast[0]
   const main = ast[1]
 
@@ -347,7 +355,7 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
   })
 
   it('should use AnalyticsFunction', () => {
-    expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({}))
+    expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({methodsAsync: true}))
   })
 
 })

@@ -23,11 +23,12 @@ yarn install
 yarn ts-node src/bin/cli.ts transliterate \
   --input src/example/example-schema.yml \
   --output ./output \
+  --methodsAsync (true|false) \
   --implementation ./src/example/example-implementation
 yarn ts-node src/example/example-client.ts
 ```
 
-The transliterate command parses your analytics schema in `./src/example/example-schema.yml`, generates the code, and writes it to `./output`. Specifying `--implementation` is meant to specify a file whose default export is your analytics reporter implementation; by default, itonly does `console.log(...)`
+The transliterate command parses your analytics schema in `./src/example/example-schema.yml`, generates the code, and writes it to `./output`. Specifying `--implementation` is meant to specify a file whose default export is your analytics reporter implementation; by default, itonly does `console.log(...)`. `--methodsAsync true|false` will mark all methods as asynchronous and await the implementation.
 
 ## Schema format
 

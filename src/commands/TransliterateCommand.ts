@@ -10,20 +10,28 @@ export default class TransliterateCommand {
   args: {
     schema_path: string,
     output: string,
-    implementation?: string
+    implementation?: string,
+    methodsAsync: boolean
   }
 
   constructor(args: {
     schema_path: string,
     output: string,
-    implementation?: string
+    implementation?: string,
+    methodsAsync?: boolean
   }) {
-    this.args = args
+    this.args = {
+      ...args,
+      methodsAsync: !!args.methodsAsync
+    }
+
   }
 
   run() {
 
-    const options = {}
+    const options = {
+      methodsAsync: this.args.methodsAsync
+    }
 
     if(this.args.implementation) {
       const implementationSplit = this.args.implementation.split(path.sep)

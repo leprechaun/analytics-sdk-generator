@@ -14,11 +14,16 @@ export type FileNodesList = {
 export default class Transliterator {
   options: {
     implementation?: string
+    methodsAsync: boolean
   }
   constructor(options?: {
-    implementation?: string
+    implementation?: string,
+    methodsAsync?: boolean
   }) {
-    this.options = options
+    this.options = {
+      ...options,
+      methodsAsync: options.methodsAsync
+    }
   }
 
   sharedEnum(path: string[], name: string, values: string[], description: string) {
@@ -73,7 +78,7 @@ export default class Transliterator {
         'screens',
         screen.escapeKey()
       ],
-      nodes: new functions.ScreenAnalyticsFunction(screen).toAST({ importMappings, hasImplementation: !!this.options?.implementation })
+      nodes: new functions.ScreenAnalyticsFunction(screen).toAST({ importMappings, hasImplementation: !!this.options?.implementation, methodsAsync: this.options.methodsAsync })
     })
 
     return nodes
@@ -112,7 +117,7 @@ export default class Transliterator {
         path: [
           'tracks',
         ],
-        nodes: new functions.TrackAnalyticsFunction(track).toAST({importMappings, hasImplementation: !!this.options.implementation})
+        nodes: new functions.TrackAnalyticsFunction(track).toAST({importMappings, hasImplementation: !!this.options.implementation, methodsAsync: this.options.methodsAsync})
       })
     }
 
