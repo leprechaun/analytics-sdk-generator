@@ -272,7 +272,7 @@ export class ObjectType extends ComplexType  {
     })
   }
 
-  toAST(options?: {importMappings?: {[key: string]: string[]}}): ts.TypeLiteralNode {
+  toAST(options?: {importMappings?: {[key: string]: string[]}}): ts.TypeLiteralNode | ts.LiteralTypeNode {
     return factory.createTypeLiteralNode(
       this.properties.map( p => p.toAST(options) )
     )

@@ -1,6 +1,7 @@
 import screen, * as tracks from '../../output/screens/CompanyProfile'
 
-screen({})
+screen()
+screen(null)
 
 tracks.CompanyProfileCompleted(
   {

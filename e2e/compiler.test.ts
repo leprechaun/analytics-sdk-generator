@@ -65,5 +65,13 @@ describe("Compilation tests", () => {
         expect.stringContaining("Expected 1-2 arguments, but got 0.")
       )
     })
+
+    it('borks when props are passed when it should be null', () => {
+      const result = compile(['./e2e/failing-build-examples/passing-props-when-none-are-required.ts'])
+      expect(result.result).toBeFalsy()
+      expect(result.diagnostics[0].message).toEqual(
+        expect.stringContaining("not assignable to parameter of type 'null'")
+      )
+    })
   })
 })
