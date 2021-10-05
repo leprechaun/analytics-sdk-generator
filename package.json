@@ -51,7 +51,8 @@
     "yargs": "^17.1.1"
   },
   "scripts": {
-    "test": "jest **/*.test.ts",
+    "test:e2e": "jest e2e/",
+    "test": "jest src/",
     "build": "tsc --build"
   }
 }

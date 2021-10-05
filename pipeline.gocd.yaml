@@ -58,7 +58,7 @@ pipelines:
                     ./auto/clean-up || true
                 - script: |
                     ./auto/yarn ts-node src/bin/cli.ts transliterate
-                    ./auto/broken-clients
+                    ./auto/yarn test:e2e
 
 
   analytics-sdk-generator-extra-tests:
