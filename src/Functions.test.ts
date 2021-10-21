@@ -352,6 +352,9 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
   it('exports a function named with $key', () => {
     expect(declaration.name.escapedText).toEqual("SomeTrack")
     expect(declaration.initializer.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+    expect(main.modifiers[0].kind).toEqual(
+      ts.SyntaxKind.ExportKeyword
+    )
   })
 
   it('should use AnalyticsFunction', () => {
