@@ -361,21 +361,10 @@ export class Constant extends BaseType {
     return (this.type).toPartialLiteralAST(this.value)
   }
 
-  toAST(options?: {}): ts.LiteralTypeNode {
+  toAST(options?: ToASTOptions): ts.LiteralTypeNode {
     return factory.createLiteralTypeNode(
-      (this.type as StringType).toPartialLiteralAST(this.value)
+      this.type.toPartialLiteralAST(this.value)
     )
-
-    /*
-    switch(this.type) {
-      case 'number':
-        return factory.createLiteralTypeNode(factory.createNumericLiteral(this.value))
-
-      case 'string':
-      default:
-        return factory.createLiteralTypeNode(factory.createStringLiteral(this.value))
-    }
-    */
   }
 }
 

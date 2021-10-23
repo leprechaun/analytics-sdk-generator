@@ -1,3 +1,4 @@
+import ts from 'typescript'
 import TypeMapper from './TypeMapper'
 import * as types from './Types'
 import * as InputTypes from './InputTypes'
@@ -125,6 +126,38 @@ describe(TypeMapper, () => {
           expect(t.properties[0].required).toBeTruthy()
           expect(t.properties[1].required).toBeFalsy()
           expect(t.properties[2].required).toBeFalsy()
+        })
+
+        describe('toAST', () => {
+          let t: types.StringType
+          let op: types.ObjectProperty
+          let typeAST: any
+          let ast: any
+
+          beforeEach( () => {
+            t = new types.StringType({})
+            typeAST = t.toAST()
+            jest.spyOn(t, 'toAST').mockReturnValueOnce(typeAST)
+
+            op = new types.ObjectProperty("some-name", t, true)
+            ast = op.toAST()
+          })
+
+          it('returns a property assignment', () => {
+            expect(ast.kind).toEqual(ts.SyntaxKind.PropertySignature)
+          })
+
+          it('marks the property as required', () => {
+            expect(ast.modifiers).toBeUndefined()
+          })
+
+          it('calls whatever type\'s .toAST()', () => {
+            expect(t.toAST).toHaveBeenCalled()
+          })
+
+          it('sets the type as whatever toAST returned', () => {
+            expect(ast.type).toBe(typeAST)
+          })
         })
       })
     })
