@@ -5,6 +5,30 @@ import * as InputTypes from './InputTypes'
 import * as Types from './Types'
 import TypeMapper from './TypeMapper'
 
+const print = (nodelist: any[]) => {
+  const nodes = factory.createNodeArray(nodelist)
+  const sourceFile = ts.createSourceFile(
+    "example.ts",
+    "",
+    ts.ScriptTarget.ESNext,
+    true,
+    ts.ScriptKind.TS
+  )
+
+  const printer = ts.createPrinter({
+    omitTrailingSemicolon: true
+  })
+
+  const outputFile = printer.printList(
+    ts.ListFormat.MultiLine,
+    nodes,
+    sourceFile
+  )
+
+  console.log(outputFile)
+}
+
+
 describe(functions.AnalyticsFunction, () => {
   const properties = {
     thing: {
@@ -352,9 +376,6 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
   it('exports a function named with $key', () => {
     expect(declaration.name.escapedText).toEqual("SomeTrack")
     expect(declaration.initializer.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-    expect(main.modifiers[0].kind).toEqual(
-      ts.SyntaxKind.ExportKeyword
-    )
   })
 
   it('should use AnalyticsFunction', () => {

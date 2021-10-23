@@ -61,7 +61,7 @@ export default class Transliterator {
       nodes: [this.sharedDefsImport("../shared-definitions")]
     })
 
-    if(!!this.options.implementation) {
+    if(this.options.implementation) {
       nodes.push({
         path: ['screens', screen.escapeKey()],
         nodes: [this.importImplementation("../" + this.options.implementation)]
@@ -100,7 +100,7 @@ export default class Transliterator {
       nodes: [this.sharedDefsImport("./shared-definitions")]
     })
 
-    if(!!this.options.implementation) {
+    if(this.options.implementation) {
       nodes.push({
         path: ['tracks'],
         nodes: [this.importImplementation(this.options.implementation)]

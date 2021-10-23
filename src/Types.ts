@@ -167,7 +167,7 @@ export class BooleanType extends PrimitiveType {
   }
 
   toPartialLiteralAST(value: any) {
-    return !!value ? factory.createTrue() : factory.createFalse()
+    return value ? factory.createTrue() : factory.createFalse()
   }
 }
 
