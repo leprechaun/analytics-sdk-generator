@@ -7,7 +7,7 @@
     "progress",
     "dashboard"
   ],
-  "ignorePatterns": ["dist", "coverage", "src/bin/", "src/example"],
+  "ignorePatterns": ["dist", "coverage", "src/bin/", "src/example", "e2e/"],
   "testRunner": "jest",
   "coverageAnalysis": "perTest",
   "dashboard": {
