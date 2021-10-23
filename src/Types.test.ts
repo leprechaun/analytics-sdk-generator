@@ -109,6 +109,18 @@ describe(TypeMapper, () => {
         })
       })
 
+      describe('.toAST', () => {
+        it('returns an object definition', () => {
+          const a = t.toAST()
+          expect(t.toAST().kind).toEqual(ts.SyntaxKind.TypeLiteral)
+        })
+
+        it('returns has 3 properties', () => {
+          const a = t.toAST()
+          expect((t.toAST() as any).members.length).toBe(3)
+        })
+      })
+
       describe(types.ObjectProperty, () => {
         it('casts properties as Object', () => {
           expect(t.properties[0]).toBeInstanceOf(types.ObjectProperty)

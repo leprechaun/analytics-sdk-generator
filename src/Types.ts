@@ -12,7 +12,7 @@ export class BaseType {
     Object.assign(this, definition)
   }
 
-  toAST(options?: {}): ts.Node | ts.Node[] {
+  toAST(options?: ToASTOptions): ts.Node | ts.Node[] {
     return null as any
   }
 
@@ -103,7 +103,7 @@ export class AnyStringType extends PrimitiveType {
 export class StringType extends AnyStringType {
   format: string
 
-  toAST(options?: {}) {
+  toAST(options?: ToASTOptions) {
     return factory.createKeywordTypeNode(ts.SyntaxKind.StringKeyword)
   }
 
@@ -144,7 +144,7 @@ FormattedStringType.addFormat('date-time', DateFormattedStringType)
 export class NumberType extends PrimitiveType {
   format: string
 
-  toAST(options?: {}) {
+  toAST(options?: ToASTOptions) {
     return factory.createKeywordTypeNode(ts.SyntaxKind.NumberKeyword)
   }
 
@@ -158,7 +158,7 @@ export class NumberType extends PrimitiveType {
 }
 
 export class BooleanType extends PrimitiveType {
-  toAST(options: {}) {
+  toAST(options: ToASTOptions) {
     return factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
   }
 
@@ -182,7 +182,7 @@ export class ArrayType extends ComplexType {
     this.type = TypeMapper.toSpecificType(definition.items)
   }
 
-  toAST(options?: {}) {
+  toAST(options?: ToASTOptions) {
     return factory.createArrayTypeNode(this.type.toAST(options) as ts.TypeNode)
   }
 
@@ -274,7 +274,7 @@ export class ObjectType extends ComplexType  {
     })
   }
 
-  toAST(options?: {importMappings?: {[key: string]: string[]}}): ts.TypeLiteralNode | ts.LiteralTypeNode {
+  toAST(options?: ToASTOptions): ts.TypeLiteralNode | ts.LiteralTypeNode {
     return factory.createTypeLiteralNode(
       this.properties.map( p => p.toAST(options) )
     )
@@ -327,7 +327,7 @@ export class TypeReference extends BaseType {
     }
   }
 
-  toAST(options?: {importMappings?: {[key: string]: string[]}}) {
+  toAST(options?: ToASTOptions) {
     return factory.createTypeReferenceNode(
       this.jsonRefToName(options),
       undefined
