@@ -22,82 +22,18 @@ export class BaseType {
 }
 
 export class SimpleType extends BaseType {
-  /*
-  static toSpecificType(definition: InputTypes.SimpleDefinition) {
-    throw new Error("26")
-    if('enum' in definition) {
-      return EnumeratedSimpleType.toSpecificType(definition as InputTypes.EnumeratedSimpleDefinition)
-    } else {
-      return NonEnumeratedSimpleType.toSpecificType(definition as InputTypes.NonEnumeratedSimpleDefinition)
-    }
-  }
-  */
 }
 
 export class EnumeratedSimpleType extends BaseType {
-  /*
-  static toSpecificType(definition: InputTypes.EnumeratedSimpleDefinition): UnionType | Constant {
-    if(definition.enum.length == 0) {
-      throw new Error("Enums must have at least one option")
-    } else if( definition.enum.length == 1 ) {
-      return new Constant(definition.enum[0])
-    } else {
-      return new UnionType({options: definition.enum.map( v => new Constant(v))})
-    }
-  }
-  */
 }
 
 export class NonEnumeratedSimpleType extends BaseType {
-  /*
-  static toSpecificType(definition: InputTypes.NonEnumeratedSimpleDefinition): SimpleType {
-    switch(definition.type) {
-      case 'number':
-      case 'integer':
-        return new NumberType(definition as InputTypes.NumberDefinition)
-
-      case 'string':
-        return AnyStringType.toSpecificType(definition as InputTypes.AnyStringDefinition)
-
-      case 'boolean':
-        return new BooleanType(definition as InputTypes.BooleanDefinition)
-
-       case 'object':
-        return new ObjectType(definition as InputTypes.ObjectDefinition)
-
-      case 'array':
-        return new ArrayType(definition as InputTypes.ArrayDefinition)
-    }
-  }
-  */
 }
 
 export class PrimitiveType extends BaseType {
-  /*
-  static toSpecificType(definition: InputTypes.PrimitiveDefinition) {
-    switch(definition.type) {
-      case 'number':
-      case 'integer':
-        return new NumberType(definition as InputTypes.NumberDefinition)
-      case 'string':
-        return AnyStringType.toSpecificType(definition as InputTypes.AnyStringDefinition)
-      case 'boolean':
-        return new BooleanType(definition as InputTypes.BooleanDefinition)
-    }
-  }
-  */
 }
 
 export class AnyStringType extends PrimitiveType {
-  /*
-  static toSpecificType(definition: InputTypes.AnyStringDefinition) {
-    if('format' in definition) {
-      return FormattedStringType.toSpecificType(definition as InputTypes.FormattedStringDefinition)
-    } else {
-      return new StringType(definition as InputTypes.NonFormattedStringDefinition)
-    }
-  }
-  */
 }
 
 export class StringType extends AnyStringType {
@@ -192,13 +128,6 @@ export class ArrayType extends ComplexType {
 
   toPartialLiteralAST(value: any) {
     throw new Error("Not Implemented")
-    factory.createArrayLiteralExpression(
-      [
-        factory.createTrue(),
-        factory.createFalse()
-      ],
-      false
-    )
   }
 }
 
@@ -375,20 +304,6 @@ export class UnionType extends BaseType {
     this.options = definition.options
   }
 
-  /*
-  static toSpecificType(definition: InputTypes.UnionDefinition) {
-    if(definition.oneOf.length == 0) {
-      throw new Error("Unions must have atleast one option")
-    } else if (definition.oneOf.length == 1){
-      return TypeMapper.toSpecificType(definition.oneOf[0])
-    } else {
-      return new UnionType({
-        options: definition.oneOf.map( o => TypeMapper.toSpecificType(o) )
-      })
-    }
-  }
-  */
-
   toAST(options?: {importMappings?: {[key: string]: string[]}}) {
     return factory.createUnionTypeNode(this.options.map( o => o.toAST(options) ))
   }
@@ -404,7 +319,6 @@ export class NamedType {
     this.name = name
     this.description = description
   }
-
 
   toAST(options?: {importMappings?: {[key: string]: string[]}}) {
     const nodes = []

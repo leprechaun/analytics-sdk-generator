@@ -54,7 +54,7 @@ export default class Transliterator {
     )
   }
 
-  screenFunction(screen: Screen, importMappings) {
+  screenFunction(screen: Screen, importMappings: {[key: string]: string[]}) {
     const nodes = []
     nodes.push({
       path: ['screens', screen.escapeKey()],
