@@ -218,17 +218,14 @@ export class ScreenAnalyticsFunction extends BaseEvent {
   }
 
   tracks(options?: ToASTOptions) {
-    const nodes = []
-
     if(this.screen.tracks.length > 0) {
-      for(const track of this.screen.tracks) {
-        const ast = new ScreenSpecificTrackAnalyticsFunction(track, this.screen).toAST(options)
-        for(const n of ast) {
-          nodes.push(n)
-        }
-      }
-    }
+      const functionsAndComments = this.screen.tracks.map( track => {
+        return new ScreenSpecificTrackAnalyticsFunction(track, this.screen).toAST(options)
+      })
 
-    return nodes
+      return [].concat(...functionsAndComments)
+    } else {
+      return []
+    }
   }
 }
