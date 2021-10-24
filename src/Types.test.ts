@@ -289,6 +289,15 @@ describe(TypeMapper, () => {
           expect(typed).toBeInstanceOf(types.DateFormattedStringType)
         })
 
+        it('supports date-time out of the box', () => {
+          const typed = TypeMapper.toSpecificType({
+            type: 'string',
+            format: 'date-time'
+          } as InputTypes.TypeDefinition)
+
+          expect(typed.toAST().typeName.escapedText).toEqual('Date')
+        })
+
         it('supports adding custom formatted types', () => {
           class CustomType extends types.FormattedStringType {
             toAST(options: {}) {

@@ -64,6 +64,16 @@ describe(Transliterator, () => {
       })
     })
 
+    describe('tracks', () => {
+      const tracks = results.filter( (fnl: FileNodes) => {
+        return fnl.path[0] == 'tracks'
+      })
+
+      it('should include a number of tracks', () => {
+        expect(tracks.length).toBeGreaterThanOrEqual(3)
+      })
+    })
+
     describe('shared-definitions', () => {
       const shared = results.filter( (fnl: FileNodes) => {
         return fnl.path[0] == 'shared-definitions'
