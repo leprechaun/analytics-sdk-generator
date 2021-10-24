@@ -42,6 +42,7 @@ class BaseEvent {
       )
     )]
   }
+
 }
 
 export class AnalyticsFunction {
@@ -158,13 +159,8 @@ export class AnalyticsFunction {
   }
 }
 
-export class TrackAnalyticsFunction extends BaseEvent {
+export class TrackFunction extends BaseEvent {
   track: Track
-
-  constructor(track: Track) {
-    super()
-    this.track = track
-  }
 
   toAST(options?: ToASTOptions) {
     const comment = this.comment(this.track)
@@ -174,7 +170,16 @@ export class TrackAnalyticsFunction extends BaseEvent {
   }
 }
 
-export class ScreenSpecificTrackAnalyticsFunction extends BaseEvent {
+export class TrackAnalyticsFunction extends TrackFunction {
+  track: Track
+
+  constructor(track: Track) {
+    super()
+    this.track = track
+  }
+}
+
+export class ScreenSpecificTrackAnalyticsFunction extends TrackFunction {
   track: Track
   screen: Screen
 
@@ -182,13 +187,6 @@ export class ScreenSpecificTrackAnalyticsFunction extends BaseEvent {
     super()
     this.track = track
     this.screen = screen
-  }
-
-  toAST(options?: ToASTOptions) {
-    const comment = this.comment(this.track)
-    const main = this.asNamedExport(this.track, options)
-
-    return comment.concat(main)
   }
 }
 
