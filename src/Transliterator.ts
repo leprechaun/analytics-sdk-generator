@@ -6,10 +6,12 @@ import { NamedType } from './Types'
 import { Screen } from './EventTypes'
 import * as functions from './Functions'
 
-export type FileNodesList = {
+export type FileNodes = {
   path: string[],
   nodes: ts.Node[]
-}[]
+}
+
+export type FileNodesList = FileNodes[]
 
 export default class Transliterator {
   options: {
