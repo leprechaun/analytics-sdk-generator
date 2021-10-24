@@ -97,7 +97,7 @@ export class AnalyticsFunction {
     }
   }
 
-  fn(asynchronous: ts.Modifier[] | undefined, parameters: any[], implementation: ts.ExpressionStatement | ts.CallExpression, options: ToASTOptions) {
+  fn(asynchronous: ts.Modifier[] | undefined, parameters: ts.ParameterDeclaration[], implementation: ts.ExpressionStatement | ts.CallExpression, options: ToASTOptions) {
     return factory.createArrowFunction(
       asynchronous,
       undefined,

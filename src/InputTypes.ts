@@ -32,7 +32,9 @@ export type BooleanConstantDefinition = {
 } & Describable
 
 export type ObjectConstantDefinition = {
-  'const': {}
+  'const': {
+    [key: string]: any
+  }
 } & Describable
 
 export type ArrayConstantDefinition = {

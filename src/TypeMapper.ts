@@ -43,10 +43,6 @@ export default class TypeMapper {
     }
   }
 
-  static toObjectConstant(definition: InputTypes.ConstantDefinition) {
-
-  }
-
   static toNonEnumeratedSimpleType(definition: InputTypes.NonEnumeratedSimpleDefinition): Types.SimpleType {
     switch(definition.type) {
       case 'number':

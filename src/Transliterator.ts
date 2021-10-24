@@ -3,7 +3,7 @@ import ts, { factory } from 'typescript'
 import TrackingPlan from './TrackingPlan'
 import TypeMapper from './TypeMapper'
 import { NamedType } from './Types'
-import { Screen, Track } from './EventTypes'
+import { Screen } from './EventTypes'
 import * as functions from './Functions'
 
 export type FileNodesList = {

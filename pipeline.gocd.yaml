@@ -44,6 +44,10 @@ pipelines:
                 - test:
                     source: coverage/
                     destination: ./coverage/
+            lint:
+              tasks:
+                - script: |
+                    ./auto/yarn lint
             audit:
               tasks:
                 - script: |
@@ -51,7 +55,6 @@ pipelines:
                 - script: |
                     ##./auto/audit --json --groups dependencies --level moderate
                     echo -- Skip, stryker and jest have a vulnerability
-
             e2e-broken-clients:
               tasks:
                 - script: |
