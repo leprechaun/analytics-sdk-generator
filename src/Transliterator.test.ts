@@ -50,82 +50,99 @@ describe(Transliterator, () => {
   const results = T.transliterate(TP)
 
   describe('output', () => {
-    it('should include FeatureNames in shared definitions', () => {
-      const shared = results.filter( (fnl: FileNodes) => {
-        return fnl.path[0] == 'shared-definitions'
+    describe('screens', () => {
+      const screens = results.filter( (fnl: FileNodes) => {
+        return fnl.path[0] == 'screens'
       })
-      expect(
-        shared
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            nodes: expect.arrayContaining([
-              expect.objectContaining({
-                comment: "List of all the feature names"
-              }),
-              expect.objectContaining({
-                name: expect.objectContaining({
-                  escapedText: "FeatureNames"
-                }),
-                type: expect.objectContaining({
-                  kind: 183
-                })
-              })
-            ])
-          })
-        ])
-      )
+
+      it('should have a file for "Welcome"', () => {
+        expect(screens.filter( s => s.path[1] == 'Welcome').length).toBeGreaterThanOrEqual(1)
+      })
+
+      it('should have a file for "AnotherScreen"', () => {
+        expect(screens.filter( s => s.path[1] == 'AnotherScreen').length).toBeGreaterThanOrEqual(1)
+      })
     })
 
-    it('should include ScreenNames in shared definitions', () => {
+    describe('shared-definitions', () => {
       const shared = results.filter( (fnl: FileNodes) => {
         return fnl.path[0] == 'shared-definitions'
       })
-      expect(
-        shared
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            nodes: expect.arrayContaining([
-              expect.objectContaining({
-                comment: "List of all the screen names"
-              }),
-              expect.objectContaining({
-                name: expect.objectContaining({
-                  escapedText: "ScreenNames"
-                }),
-                type: expect.objectContaining({
-                  kind: 183
-                })
-              })
-            ])
-          })
-        ])
-      )
-    })
 
-    it('should include userId in shared definitions', () => {
-      const shared = results.filter( (fnl: FileNodes) => {
-        return fnl.path[0] == 'shared-definitions'
-      })
-      expect(
-        shared
-      ).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            nodes: expect.arrayContaining([
+      describe('Featurenames', () => {
+        it('should include FeatureNames in shared definitions', () => {
+          expect(
+            shared
+          ).toEqual(
+            expect.arrayContaining([
               expect.objectContaining({
-                name: expect.objectContaining({
-                  escapedText: "userId"
-                }),
-                type: expect.objectContaining({
-                  kind: 147
-                })
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    comment: "List of all the feature names"
+                  }),
+                  expect.objectContaining({
+                    name: expect.objectContaining({
+                      escapedText: "FeatureNames"
+                    }),
+                    type: expect.objectContaining({
+                      kind: 183
+                    })
+                  })
+                ])
               })
             ])
-          })
-        ])
-      )
+          )
+        })
+      })
+
+      describe('ScreenNames', () => {
+        it('should include ScreenNames in shared definitions', () => {
+          expect(
+            shared
+          ).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    comment: "List of all the screen names"
+                  }),
+                  expect.objectContaining({
+                    name: expect.objectContaining({
+                      escapedText: "ScreenNames"
+                    }),
+                    type: expect.objectContaining({
+                      kind: 183
+                    })
+                  })
+                ])
+              })
+            ])
+          )
+        })
+      })
+
+      describe('traits', () => {
+        it('should include userId in shared definitions', () => {
+          expect(
+            shared
+          ).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                nodes: expect.arrayContaining([
+                  expect.objectContaining({
+                    name: expect.objectContaining({
+                      escapedText: "userId"
+                    }),
+                    type: expect.objectContaining({
+                      kind: 147
+                    })
+                  })
+                ])
+              })
+            ])
+          )
+        })
+      })
     })
   })
 })
