@@ -87,19 +87,15 @@ export class Event {
     const featureNamesSet = new Set<string>()
     const screenNamesSet = new Set<string>()
 
-    if('screens' in this) {
-      for(const s of this.screens) {
-        screenNamesSet.add(s.name)
-        for(const f of s.features) {
-          featureNamesSet.add(f.name)
-        }
+    for(const s of this.screens || []) {
+      screenNamesSet.add(s.name)
+      for(const f of s.features) {
+        featureNamesSet.add(f.name)
       }
     }
 
-    if('features' in this) {
-      for(const f of this.features) {
-        featureNamesSet.add(f.name)
-      }
+    for(const f of this.features || []) {
+      featureNamesSet.add(f.name)
     }
 
     const featureNames = Array.from(featureNamesSet)
