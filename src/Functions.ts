@@ -81,8 +81,7 @@ export class AnalyticsFunction {
     )
   }
 
-  toAST(options?: ToASTOptions) {
-    let implementation: ts.ExpressionStatement | ts.CallExpression
+  implementation(options: ToASTOptions) {
     const params = [
         factory.createStringLiteral(this.event.type),
         factory.createStringLiteral(this.event.name),
@@ -91,26 +90,35 @@ export class AnalyticsFunction {
     ]
 
     if(options.hasImplementation) {
-      implementation = this.specifiedImplementation(options, params)
+      return this.specifiedImplementation(options, params)
     } else {
-      implementation = this.emptyImplementation(params)
+      return this.emptyImplementation(params)
     }
+  }
 
-    const asynchronous = options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined
-
+  fn(asynchronous: ts.Modifier[] | undefined, parameters: any[], implementation: ts.ExpressionStatement | ts.CallExpression, options: ToASTOptions) {
     return factory.createArrowFunction(
       asynchronous,
       undefined,
-      [
-        this.propsParameter(this.event.properties, options),
-        this.sourceParameter(options),
-      ],
+      parameters,
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock(
         [implementation as ts.Statement],
         true
       )
+    )
+  }
+
+  toAST(options?: ToASTOptions) {
+    return this.fn(
+      options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
+      [
+        this.propsParameter(this.event.properties, options),
+        this.sourceParameter(options),
+      ],
+      this.implementation(options),
+      options
     )
   }
 
@@ -149,7 +157,6 @@ export class AnalyticsFunction {
     )
   }
 }
-
 
 export class TrackAnalyticsFunction extends BaseEvent {
   track: Track
