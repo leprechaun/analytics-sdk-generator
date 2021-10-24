@@ -149,16 +149,10 @@ export class ObjectProperty {
   }
 
   toPartialLiteralAST() {
-    if(this.type instanceof Constant) {
+    if(this.type instanceof Constant || this.type instanceof ObjectType) {
       return factory.createPropertyAssignment(
         factory.createIdentifier(this.name),
-        (this.type as Constant).toPartialLiteralAST()
-      )
-    }
-    else if(this.type instanceof ObjectType) {
-      return factory.createPropertyAssignment(
-        factory.createIdentifier(this.name),
-        (this.type as ObjectType).toPartialLiteralAST()
+        (this.type).toPartialLiteralAST()
       )
     } else {
       throw new Error("WUT")
