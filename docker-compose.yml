@@ -10,8 +10,8 @@ services:
       - ./:/app/
       - yarn-cache:/usr/local/share/.cache/yarn/v2
       - node_modules:/app/node_modules/
-      - .stryker-tmp
-      - ./output
+      - /app/.stryker-tmp
+      - /app/output
     environment:
       STRYKER_DASHBOARD_API_KEY: "${STRYKER_DASHBOARD_API_KEY}-invalid"
       NPM_TOKEN: "${NPM_TOKEN}-invalid"
