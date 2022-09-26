@@ -22,10 +22,8 @@ pipelines:
       GO_AUTOMATION_USER: automaton
       GITHUB_AUTOMATION_USER: gocd-service-account
     secure_variables:
-      GO_AUTOMATION_PASSWORD: "AES:+heX4S6WsUXSqPxj5nNOoQ==:9jXtfK+GoUYDpS7mvGGWmA=="
-      GITHUB_AUTOMATION_PASSWORD: "AES:EwOyEBf7z5d8VzVua75pEg==:LZhYZmLP7OR2Vf+NwirNlTCYCmptgbSRRqD3kWjjYlXxxCeSZGYyX07ZIcgMpfhV"
-      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
-      CC_TEST_REPORTER_ID: "AES:TcEozrA1arnS51Y7SdtIWQ==:k+dhG+mjd2i/REqTvuOKhmggZA4VZbr/WLmd3KVvbN1dfCMPO7RMRAdOcBPTqwnXDD0vwoKnD0LCoG2B1eeJW3qYcCu4C2fogU1lKKP6+5w="
+      NPM_TOKEN: "AES:zrPOXdWUAMyHo8N7EDQYPg==:BNjo2Pa0SkQMXurcJpVWE6VR+qLYzVP1TXTi7P91L+a4+Pmqoi6BlN3TdsLtT9eu"
+      CC_TEST_REPORTER_ID: "AES:weNufwgbFfTeGGunxlVQnA==:2M+IAjaPjHZ2kVMLM2GNpLA49X1d5V5VGmqJxQaTvXAgkYtRUDZoBTiEAOTxr7s8ycnwsqiTtozlUs4J6Zutp93hfUbaRNAGVCTOFdp+wb4="
     stages:
       - tests:
           jobs:
@@ -85,7 +83,7 @@ pipelines:
 
     environment_variables: {}
     secure_variables:
-      STRYKER_DASHBOARD_API_KEY: "AES:pqZiKikLWjhglnJRQzr4mw==:+SjlHeU3cqsUgXPcCxMnW0mnGBDYEgN+sTAyty4TBdML9942vsvgI1irfaiKTgCY"
+      STRYKER_DASHBOARD_API_KEY: "AES:U68JXa1abYM1DA5i58291Q==:gzS9JXlo68GJYoRPQ6JhqgXojXEXAbxdijlBG6uZ/9G6qytL/b4wE2dsuyQUGtQO"
     stages:
       - mutation:
           tasks:
@@ -118,7 +116,7 @@ pipelines:
 
     environment_variables: {}
     secure_variables:
-      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
+      NPM_TOKEN: "AES:zrPOXdWUAMyHo8N7EDQYPg==:BNjo2Pa0SkQMXurcJpVWE6VR+qLYzVP1TXTi7P91L+a4+Pmqoi6BlN3TdsLtT9eu"
     stages:
       - package:
           tasks:
@@ -153,7 +151,7 @@ pipelines:
         destination: ./
     environment_variables: {}
     secure_variables:
-      NPM_TOKEN: "AES:6sBhU7v8kXP+ewzXZ9yywA==:r8ekub2kRBDTLbtrvGzqndsQfHNGSl+IRM3UFTuXkMuQvgeePCIjfEQSyOm0rTlg"
+      NPM_TOKEN: "AES:zrPOXdWUAMyHo8N7EDQYPg==:BNjo2Pa0SkQMXurcJpVWE6VR+qLYzVP1TXTi7P91L+a4+Pmqoi6BlN3TdsLtT9eu"
     stages:
       - publish:
           approval: manual
