@@ -11,7 +11,7 @@ services:
       - yarn-cache:/usr/local/share/.cache/yarn/v2
       - node_modules:/app/node_modules/
       - /app/.stryker-tmp
-      - /app/output
+      - output:/app/output
     environment:
       STRYKER_DASHBOARD_API_KEY: "${STRYKER_DASHBOARD_API_KEY}-invalid"
       NPM_TOKEN: "${NPM_TOKEN}-invalid"
@@ -22,3 +22,4 @@ volumes:
   yarn-cache: {
     external: true
   }
+  output: {}
