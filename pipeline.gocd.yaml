@@ -58,6 +58,77 @@ common:
           version: 1
 
 pipelines:
+  analytics-sdk-generator-branch:
+    group: analytics-sdk-generator
+    label_template: "${git-analytics-sdk-generator-branch[:8]}"
+    lock_behavior: none
+    timer:
+      spec: "* * * * * ? */15"
+      only_on_changes: yes
+    materials:
+      git-analytics-sdk-generator-branch:
+        plugin_configuration:
+          id: git.fb
+          version: 1.3.5
+        options:
+          url: https://github.com/leprechaun/analytics-sdk-generator.git
+          branchwhitelist: "**"
+          branchblacklist: master
+        destination: ./
+    environment_variables:
+      GO_AUTOMATION_USER: automaton
+      GITHUB_AUTOMATION_USER: gocd-service-account
+    secure_variables:
+      NPM_TOKEN: "AES:zrPOXdWUAMyHo8N7EDQYPg==:BNjo2Pa0SkQMXurcJpVWE6VR+qLYzVP1TXTi7P91L+a4+Pmqoi6BlN3TdsLtT9eu"
+      CC_TEST_REPORTER_ID: "AES:weNufwgbFfTeGGunxlVQnA==:2M+IAjaPjHZ2kVMLM2GNpLA49X1d5V5VGmqJxQaTvXAgkYtRUDZoBTiEAOTxr7s8ycnwsqiTtozlUs4J6Zutp93hfUbaRNAGVCTOFdp+wb4="
+    stages:
+      - tests:
+          jobs:
+            tests:
+              tabs:
+                Coverage: ./coverage/lcov-report/index.html
+              tasks:
+                - *notify_running
+                - script: |
+                    set -e
+
+                    ./auto/code-climate-reporter before-build
+                    ./auto/test --verbose --coverage
+                    ./auto/code-climate-reporter after-build
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
+              artifacts:
+                - test:
+                    source: coverage/
+                    destination: ./coverage/
+
+            lint:
+              tasks:
+                - *notify_running
+                - script: |
+                    set -e
+
+                    ./auto/yarn lint
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
+
+            e2e-broken-clients:
+              tasks:
+                - *notify_running
+                - script: |
+                    set -e
+                    ./auto/yarn ts-node src/bin/cli.ts transliterate
+                    ./auto/yarn test:e2e
+
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
+
   analytics-sdk-generator-test:
     group: analytics-sdk-generator
     label_template: "${git-analytics-sdk-generator[:8]}"
@@ -72,7 +143,7 @@ pipelines:
           version: 1.3.5
         options:
           url: https://github.com/leprechaun/analytics-sdk-generator.git
-          branchwhitelist: master,test-*
+          branchwhitelist: master
         destination: ./
 
     environment_variables:
