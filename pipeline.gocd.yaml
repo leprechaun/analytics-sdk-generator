@@ -8,7 +8,7 @@ common:
           script: |
             echo -- Failed
             github-commit-status \
-              snacker-tracker/reporter \
+              leprechaun/analytics-sdk-generator \
               ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
               "failure" "Task Failed"
         configuration:
@@ -22,7 +22,7 @@ common:
           script: |
             echo -- Passed
             github-commit-status \
-              snacker-tracker/reporter \
+              leprechaun/analytics-sdk-generator \
               ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
               "success" "Task Succeeded"
         configuration:
@@ -33,7 +33,7 @@ common:
       script: |
         echo -- Running
         github-commit-status \
-          snacker-tracker/reporter \
+          leprechaun/analytics-sdk-generator \
           ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
           "pending" "Task is running"
 
