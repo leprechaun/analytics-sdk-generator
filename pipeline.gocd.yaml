@@ -225,7 +225,9 @@ pipelines:
           tasks:
             - script: |
                 ./auto/mutation
-                docker run -v `pwd`:/app/ alpine chown -R $(id -u):$(id -g) /app
+            - *chown
+            - *cleanup
+
           tabs:
             Mutation: ./reports/mutation/html/index.html
           artifacts:
@@ -257,17 +259,11 @@ pipelines:
       - package:
           tasks:
             - script: |
-               set -e
-               function finish {
-                  EXIT_CODE=$?
-                  docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
-                  ./auto/clean-up || true
-                  exit $EXIT_CODE
-                }
-                trap finish EXIT
-
+                set -e
                 ./auto/build
                 ./auto/publish --new-version ${GO_PIPELINE_LABEL} --tag beta
+            - *chown
+            - *cleanup
 
   analytics-sdk-generator-publish:
     group: analytics-sdk-generator
@@ -296,13 +292,7 @@ pipelines:
               tasks:
                 - script: |
                    set -e
-                   function finish {
-                      EXIT_CODE=$?
-                      docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
-                      ./auto/clean-up || true
-                      exit $EXIT_CODE
-                    }
-                    trap finish EXIT
-
                     ./auto/build
                     ./auto/publish --new-version "$(echo $GO_PIPELINE_LABEL | awk -F '-' '{print $1}')"
+                - *chown
+                - *cleanup
