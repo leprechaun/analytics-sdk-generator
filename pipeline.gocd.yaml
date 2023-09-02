@@ -214,7 +214,7 @@ pipelines:
           version: 1.3.5
         options:
           url: https://github.com/leprechaun/analytics-sdk-generator.git
-          branchwhitelist: master,test-*
+          branchwhitelist: master
         destination: ./
 
     environment_variables: {}
@@ -247,7 +247,7 @@ pipelines:
           version: 1.3.5
         options:
           url: https://github.com/leprechaun/analytics-sdk-generator.git
-          branchwhitelist: master,test-*
+          branchwhitelist: master
         destination: ./
 
     environment_variables: {}
@@ -283,7 +283,7 @@ pipelines:
           version: 1.3.5
         options:
           url: https://github.com/leprechaun/analytics-sdk-generator.git
-          branchwhitelist: master,test-*
+          branchwhitelist: master
         destination: ./
     environment_variables: {}
     secure_variables:
