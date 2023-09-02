@@ -1,4 +1,61 @@
 format_version: 2
+common:
+  tasks:
+    notify-failure: &notify_failure
+      plugin:
+        run_if: failed
+        options:
+          script: |
+            echo -- Failed
+            github-commit-status \
+              snacker-tracker/reporter \
+              ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
+              "failure" "Task Failed"
+        configuration:
+          id: script-executor
+          version: 1
+
+    notify-success: &notify_success
+      plugin:
+        run_if: passed
+        options:
+          script: |
+            echo -- Passed
+            github-commit-status \
+              snacker-tracker/reporter \
+              ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
+              "success" "Task Succeeded"
+        configuration:
+          id: script-executor
+          version: 1
+
+    notify-running: &notify_running
+      script: |
+        echo -- Running
+        github-commit-status \
+          snacker-tracker/reporter \
+          ${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_BRANCH_LABEL-${GO_SCM_GIT_ANALYTICS_SDK_GENERATOR_LABEL}} \
+          "pending" "Task is running"
+
+    cleanup: &cleanup
+      plugin:
+        run_if: any
+        options:
+          script: |
+            ./auto/clean-up || true
+        configuration:
+          id: script-executor
+          version: 1
+
+    chown: &chown
+      plugin:
+        run_if: any
+        options:
+          script: |
+            docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount || true
+        configuration:
+          id: script-executor
+          version: 1
 
 pipelines:
   analytics-sdk-generator-test:
@@ -31,38 +88,46 @@ pipelines:
               tabs:
                 Coverage: ./coverage/lcov-report/index.html
               tasks:
+                - *notify_running
                 - script: |
+                    set -e
+
                     ./auto/code-climate-reporter before-build
                     ./auto/test --verbose --coverage
                     ./auto/code-climate-reporter after-build
-                    docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
-                - script: |
-                    ./auto/clean-up || true
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
               artifacts:
                 - test:
                     source: coverage/
                     destination: ./coverage/
+
             lint:
               tasks:
+                - *notify_running
                 - script: |
+                    set -e
+
                     ./auto/yarn lint
-            audit:
-              tasks:
-                - script: |
-                    ./auto/clean-up || true
-                - script: |
-                    ##./auto/audit --json --groups dependencies --level moderate
-                    echo -- Skip, stryker and jest have a vulnerability
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
+
             e2e-broken-clients:
               tasks:
-                - script: |
-                    ./auto/clean-up || true
+                - *notify_running
                 - script: |
                     set -e
                     ./auto/yarn ts-node src/bin/cli.ts transliterate
                     ./auto/yarn test:e2e
-                    docker run -v `pwd`:/tmp/mount alpine chown -R $(id -u):$(id -g) /tmp/mount
 
+                - *notify_failure
+                - *notify_success
+                - *chown
+                - *cleanup
 
   analytics-sdk-generator-extra-tests:
     group: analytics-sdk-generator
