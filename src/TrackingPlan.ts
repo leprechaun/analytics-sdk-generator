@@ -65,7 +65,7 @@ export default class TrackingPlan {
   }
 
   addTracksToScreen(definition: EventDefinition, screen: EventTypes.Screen) {
-    if('tracks' in definition) {
+    if('tracks' in definition && Array.isArray(definition['tracks'])) {
       for(const trackName of definition['tracks']) {
         const t = this.getTrack(trackName)
         screen.tracks.push(t.toScreenSpecific(screen))
