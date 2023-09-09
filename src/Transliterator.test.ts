@@ -1,3 +1,5 @@
+import { SyntaxKind } from 'typescript'
+
 import TrackingPlan from './TrackingPlan'
 import Transliterator, { FileNodes } from './Transliterator'
 
@@ -95,7 +97,7 @@ describe(Transliterator, () => {
                       escapedText: "FeatureNames"
                     }),
                     type: expect.objectContaining({
-                      kind: 183
+                      kind: SyntaxKind.UnionType
                     })
                   })
                 ])
@@ -121,7 +123,7 @@ describe(Transliterator, () => {
                       escapedText: "ScreenNames"
                     }),
                     type: expect.objectContaining({
-                      kind: 183
+                      kind: SyntaxKind.UnionType
                     })
                   })
                 ])
@@ -144,7 +146,7 @@ describe(Transliterator, () => {
                       escapedText: "userId"
                     }),
                     type: expect.objectContaining({
-                      kind: 147
+                      kind: SyntaxKind.StringKeyword
                     })
                   })
                 ])

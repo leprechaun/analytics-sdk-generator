@@ -1,4 +1,4 @@
-import ts, { factory } from 'typescript'
+import ts, { factory, SyntaxKind } from 'typescript'
 import * as functions from './Functions'
 import * as EventTypes from './EventTypes'
 import * as InputTypes from './InputTypes'
@@ -101,7 +101,7 @@ describe(functions.AnalyticsFunction, () => {
   })
 
   it('returns an arrow function', () => {
-    expect(ast.kind).toEqual(210)
+    expect(ast.kind).toEqual(SyntaxKind.ArrowFunction)
   })
 
   describe('async/await', () => {
@@ -184,7 +184,7 @@ describe(functions.AnalyticsFunction, () => {
         })
 
         it('overwrites source with defaults as 4th argument', () => {
-          expect(ast.body.statements[0].arguments[3].kind).toEqual(201)
+          expect(ast.body.statements[0].arguments[3].kind).toEqual(SyntaxKind.ObjectLiteralExpression)
         })
       })
     })
@@ -213,8 +213,8 @@ describe(functions.AnalyticsFunction, () => {
 
         it('overwrites source with defaults as 4th argument', () => {
           const source = ast.body.statements[0].expression.expression.arguments[3]
-          expect(source.kind).toEqual(201)
-          expect(source.properties[ source.properties.length - 1].kind).toEqual(291)
+          expect(source.kind).toEqual(SyntaxKind.ObjectLiteralExpression)
+          expect(source.properties[ source.properties.length - 1].kind).toEqual(SyntaxKind.SpreadAssignment)
           expect(source.properties[ source.properties.length - 1].expression.escapedText).toEqual("source")
         })
       })
