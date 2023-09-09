@@ -56,7 +56,6 @@ export class AnalyticsFunction {
     return factory.createParameterDeclaration(
       undefined,
       undefined,
-      undefined,
       factory.createIdentifier(name),
       optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
       type,
@@ -202,7 +201,6 @@ export class ScreenAnalyticsFunction extends BaseEvent {
     const comment = this.comment(this.screen)
     const main = [
       factory.createExportAssignment(
-        undefined,
         undefined,
         undefined,
         new AnalyticsFunction(this.screen).toAST({

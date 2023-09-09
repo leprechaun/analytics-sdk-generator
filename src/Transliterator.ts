@@ -197,7 +197,6 @@ export default class Transliterator {
   reExportSharedDefs(path: string) {
     return factory.createExportDeclaration(
       undefined,
-      undefined,
       false,
       factory.createNamespaceExport(factory.createIdentifier("Types")),
       factory.createStringLiteral(path)
@@ -206,7 +205,6 @@ export default class Transliterator {
 
   sharedDefsImport(path: string) {
     return factory.createImportDeclaration(
-      undefined,
       undefined,
       factory.createImportClause(
         false,

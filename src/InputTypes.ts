@@ -111,5 +111,6 @@ export type EventDefinition = {
   properties?: { [key: string]: TypeDefinition }
 }
 
-export type ScreenDefinition = Omit<EventDefinition, "type">
 export type TrackDefinition = Omit<EventDefinition, "type">
+
+export type ScreenDefinition = Omit<EventDefinition, "type"> & { tracks?: string[] }

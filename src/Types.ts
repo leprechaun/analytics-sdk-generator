@@ -322,7 +322,6 @@ export class NamedType {
     }
 
     nodes.push(factory.createTypeAliasDeclaration(
-      undefined,
       [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
       factory.createIdentifier(this.name as string),
       undefined,
