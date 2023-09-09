@@ -184,7 +184,6 @@ export default class Transliterator {
   importImplementation(path: string) {
     return factory.createImportDeclaration(
       undefined,
-      undefined,
       factory.createImportClause(
         false,
         factory.createIdentifier("implementation"),
