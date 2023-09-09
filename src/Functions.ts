@@ -96,7 +96,7 @@ export class AnalyticsFunction {
     }
   }
 
-  fn(asynchronous: ts.Modifier[] | undefined, parameters: ts.ParameterDeclaration[], implementation: ts.ExpressionStatement | ts.CallExpression, options: ToASTOptions) {
+  fn(asynchronous: ts.Modifier[] | undefined, parameters: ts.ParameterDeclaration[], implementation: ts.ExpressionStatement | ts.CallExpression) {
     return factory.createArrowFunction(
       asynchronous,
       undefined,
@@ -117,8 +117,7 @@ export class AnalyticsFunction {
         this.propsParameter(this.event.properties, options),
         this.sourceParameter(options),
       ],
-      this.implementation(options),
-      options
+      this.implementation(options)
     )
   }
 
