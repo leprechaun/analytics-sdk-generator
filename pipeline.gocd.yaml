@@ -261,7 +261,7 @@ pipelines:
             - script: |
                 set -e
                 ./auto/build
-                ./auto/publish --new-version ${GO_PIPELINE_LABEL} --tag beta
+                ##./auto/publish --new-version ${GO_PIPELINE_LABEL} --tag beta
             - *chown
             - *cleanup
 
