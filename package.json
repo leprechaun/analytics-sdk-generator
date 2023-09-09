@@ -38,14 +38,14 @@
   "devDependencies": {
     "@stryker-mutator/core": "^5.4.1",
     "@stryker-mutator/jest-runner": "^5.4.1",
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^29.0.0",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "eslint": "^8.1.0",
-    "jest": "^27.2.4",
+    "jest": "^29.0.0",
     "jest-xunit": "^1.0.11",
     "stryker-cli": "^1.0.2",
-    "ts-jest": "^27.0.5",
+    "ts-jest": "^29.0.0",
     "ts-node": "^10.1.0",
     "typescript": "^5.0.0"
   },
