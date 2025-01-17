@@ -64,18 +64,14 @@ export class Event {
   }
 
   parseProperties(definition: EventDefinition) {
-    const propertiesObjectDefinition = {
+    const propertiesObjectDefinition: ObjectDefinition = {
       type: "object",
-      properties: definition.properties == undefined ? {} : definition.properties,
-      required: definition.required || [],
-      additionalProperties: definition.additionalProperties || false
-    } as ObjectDefinition
+      properties: definition.properties ?? {},
+      required: definition.required ?? [],
+      additionalProperties: definition.additionalProperties ?? false
+    };
 
-
-    return TypeMapper.toSpecificType(
-      propertiesObjectDefinition as ObjectDefinition
-    ) as ObjectType
-
+    return TypeMapper.toSpecificType(propertiesObjectDefinition) as ObjectType;
   }
 
   escapeKey() {
