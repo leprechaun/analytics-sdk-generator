@@ -68,11 +68,12 @@ export class AnalyticsFunction {
   }
 
   sourceParameter(options?: ToASTOptions) {
+    const sourceType = this.event.sourceToObjectType().toAST(options)
     return this.parameter(
       "source",
-      factory.createTypeLiteralNode(
-        (this.event.sourceToObjectType().toAST(options) as ts.TypeLiteralNode).members
-      ),
+      ts.isTypeLiteralNode(sourceType) 
+        ? factory.createTypeLiteralNode(sourceType.members)
+        : factory.createTypeLiteralNode([]),
       true
     )
   }
