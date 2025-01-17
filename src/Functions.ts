@@ -62,11 +62,9 @@ export class AnalyticsFunction {
   }
 
   propsParameter(properties: ObjectType, options: ToASTOptions) {
-    if(properties.properties.length == 0) {
-      return this.parameter("props", factory.createLiteralTypeNode(factory.createNull()), true)
-    } else {
-      return this.parameter("props", properties.toAST(options), false)
-    }
+    return properties.properties.length === 0
+      ? this.parameter("props", factory.createLiteralTypeNode(factory.createNull()), true)
+      : this.parameter("props", properties.toAST(options), false)
   }
 
   sourceParameter(options?: ToASTOptions) {
