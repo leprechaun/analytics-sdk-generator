@@ -34,9 +34,7 @@ class BaseEvent {
           factory.createIdentifier(event.escapeKey()),
           undefined,
           undefined,
-          new AnalyticsFunction(event).toAST({
-            ...options
-          })
+          new AnalyticsFunction(event).toAST(options)
         )],
         ts.NodeFlags.Const
       )
