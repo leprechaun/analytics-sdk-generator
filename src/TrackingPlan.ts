@@ -54,14 +54,11 @@ export default class TrackingPlan {
   }
 
   addFeaturesToEvent(definition: EventDefinition, event: EventTypes.Screen | EventTypes.Track, featureKey: 'screens' | 'tracks') {
-    if('features' in definition) {
-      for(const featureName of definition['features']) {
-        const feature = this.getFeature(featureName)
-
-        feature[featureKey].push(event)
-        event.features.push(feature)
-      }
-    }
+    definition.features?.forEach(featureName => {
+      const feature = this.getFeature(featureName);
+      feature[featureKey].push(event);
+      event.features.push(feature);
+    });
   }
 
   addTracksToScreen(definition: EventDefinition, screen: EventTypes.Screen) {
