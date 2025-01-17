@@ -86,9 +86,9 @@ export class AnalyticsFunction {
       this.event.sourceToObjectType().toPartialLiteralAST("source")
     ]
 
-    return options.hasImplementation
-      ? this.specifiedImplementation(options, params)
-      : this.emptyImplementation(params)
+    return (options.hasImplementation 
+      ? this.specifiedImplementation 
+      : this.emptyImplementation)(options, params)
   }
 
   fn(asynchronous: ts.Modifier[] | undefined, parameters: ts.ParameterDeclaration[], implementation: ts.ExpressionStatement | ts.CallExpression) {
