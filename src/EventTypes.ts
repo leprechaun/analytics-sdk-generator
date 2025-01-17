@@ -38,30 +38,29 @@ export class Event {
   screens: Screen[]
 
 
-  constructor(definition: EventDefinition) {
-    this.features = []
-    this.tracks = []
-    this.screens = []
+  constructor({
+    key, 
+    type, 
+    name, 
+    description, 
+    loginRequired, 
+    additionalProperties = false, 
+    properties, 
+    required
+  }: EventDefinition) {
+    if (!key) throw new Error("'key' is required");
+    if (!type) throw new Error("'type' is required");
 
-    if(!('key' in definition)) {
-      throw new Error("'key' is required")
-    }
-
-    if(!('type' in definition)) {
-      throw new Error("'type' is required")
-    }
-
-    this.additionalProperties = definition.additionalProperties || false
-    this.loginRequired = definition.loginRequired
-    this.type = definition.type
-    this.key = definition.key
-    this.name = definition.name || definition.key
-
-    this.properties = this.parseProperties(definition)
-
-    if('description' in definition) {
-      this.description = definition.description
-    }
+    this.features = [];
+    this.tracks = [];
+    this.screens = [];
+    this.additionalProperties = additionalProperties;
+    this.loginRequired = loginRequired;
+    this.type = type;
+    this.key = key;
+    this.name = name || key;
+    this.description = description;
+    this.properties = this.parseProperties({ key, type, name, description, loginRequired, additionalProperties, properties, required });
   }
 
   parseProperties(definition: EventDefinition) {
