@@ -120,27 +120,17 @@ export class AnalyticsFunction {
   }
 
   specifiedImplementation(options: ToASTOptions, params: ts.Expression[]) {
-    if(options.methodsAsync) {
-      return factory.createExpressionStatement(
-        factory.createAwaitExpression(
-          factory.createCallExpression(
-            factory.createIdentifier("implementation"),
-            undefined,
-            params
-            )
-        )
-      )
-    }
-    else {
-      return factory.createExpressionStatement(
-        factory.createCallExpression(
-          factory.createIdentifier("implementation"),
-          undefined,
-          params
-        )
-      )
-    }
+    const implementationCall = factory.createCallExpression(
+      factory.createIdentifier("implementation"),
+      undefined,
+      params
+    )
 
+    return factory.createExpressionStatement(
+      options.methodsAsync
+        ? factory.createAwaitExpression(implementationCall)
+        : implementationCall
+    )
   }
 
   emptyImplementation(params: ts.Expression[]) {
