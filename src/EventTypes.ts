@@ -122,35 +122,29 @@ export class Event {
   }
 
   sourceToObjectType() {
-    const properties = {}
-    const required = []
+    const screensAndFeatures = this.uniqueFeaturesAndScreens();
+    
+    const properties = {
+      widget: {type: 'string'},
+      element: {type: 'string'},
+      action: {type: 'string'}
+    };
 
-    for(const prop of ['widget', 'element', 'action']) {
-      properties[prop] = {type:'string'}
-    }
+    const required = [];
 
-    const screensAndFeatures = this.uniqueFeaturesAndScreens()
+    const [screenRequired, screenType] = this.toEnumAndRequired(screensAndFeatures.screens, "ScreenNames");
+    properties['screen'] = screenType;
+    if (screenRequired) required.push('screen');
 
-    const [screenRequired, screenType] = this.toEnumAndRequired(screensAndFeatures.screens, "ScreenNames")
+    const [featureRequired, featureType] = this.toEnumAndRequired(screensAndFeatures.features, "FeatureNames");
+    properties['feature'] = featureType;
+    if (featureRequired) required.push('feature');
 
-    properties['screen'] = screenType
-    if(screenRequired) {
-      required.push('screen')
-    }
-
-    const [featureRequired, featureType] = this.toEnumAndRequired(screensAndFeatures.features, "FeatureNames")
-    properties['feature'] = featureType
-    if(featureRequired) {
-      required.push('feature')
-    }
-
-    const definition = {
+    return new ObjectType({
       type: 'object',
       properties,
       required
-    }
-
-    return new ObjectType(definition as InputTypes.ObjectDefinition)
+    } as InputTypes.ObjectDefinition);
   }
 }
 
