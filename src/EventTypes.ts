@@ -84,26 +84,18 @@ export class Event {
   }
 
   uniqueFeaturesAndScreens() {
-    const featureNamesSet = new Set<string>()
-    const screenNamesSet = new Set<string>()
+    const featureNames = new Set([
+      ...(this.screens || []).flatMap(screen => screen.features.map(f => f.name)),
+      ...(this.features || []).map(f => f.name)
+    ]);
 
-    for(const s of this.screens || []) {
-      screenNamesSet.add(s.name)
-      for(const f of s.features) {
-        featureNamesSet.add(f.name)
-      }
-    }
-
-    for(const f of this.features || []) {
-      featureNamesSet.add(f.name)
-    }
-
-    const featureNames = Array.from(featureNamesSet)
-    const screenNames = Array.from(screenNamesSet)
+    const screenNames = new Set(
+      (this.screens || []).map(screen => screen.name)
+    );
 
     return {
-      features: featureNames,
-      screens: screenNames
+      features: Array.from(featureNames),
+      screens: Array.from(screenNames)
     }
   }
 
