@@ -80,7 +80,7 @@ export class Event {
   }
 
   escapeKey() {
-    return this.key.replace(" ","").replace("&", "n")
+    return this.key.replace(/[ &]/g, match => match === ' ' ? '' : 'n');
   }
 
   uniqueFeaturesAndScreens() {
