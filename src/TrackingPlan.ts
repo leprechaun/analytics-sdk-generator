@@ -102,18 +102,18 @@ export default class TrackingPlan {
   }
 
   getOrCreate(thing: 'features' | 'tracks' | 'screens', key: 'name' | 'key', name: string, newtype: any | undefined) {
-    const matches = this[thing as string].filter( (f: EventTypes.Screen | EventTypes.Feature | EventTypes.Track) => f[key] == name)
-    if(matches.length == 0) {
-      if(newtype) {
-        const newthing = new newtype(name)
-        this[thing as string].push(newthing)
-        return newthing
-      } else {
-        throw new Error(`Thing(${thing}/${name}) not found`)
+    const match = this[thing as string].find((f: EventTypes.Screen | EventTypes.Feature | EventTypes.Track) => f[key] == name);
+    
+    if (!match) {
+      if (newtype) {
+        const newthing = new newtype(name);
+        this[thing as string].push(newthing);
+        return newthing;
       }
-    } else {
-      return matches[0]
+      throw new Error(`Thing(${thing}/${name}) not found`);
     }
+    
+    return match;
   }
 
   getFeature(featureName: string) {
