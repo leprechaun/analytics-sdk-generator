@@ -81,17 +81,15 @@ export class AnalyticsFunction {
 
   implementation(options: ToASTOptions) {
     const params = [
-        factory.createStringLiteral(this.event.type),
-        factory.createStringLiteral(this.event.name),
+      factory.createStringLiteral(this.event.type),
+      factory.createStringLiteral(this.event.name),
       factory.createIdentifier("props"),
       this.event.sourceToObjectType().toPartialLiteralAST("source")
     ]
 
-    if(options.hasImplementation) {
-      return this.specifiedImplementation(options, params)
-    } else {
-      return this.emptyImplementation(params)
-    }
+    return options.hasImplementation
+      ? this.specifiedImplementation(options, params)
+      : this.emptyImplementation(params)
   }
 
   fn(asynchronous: ts.Modifier[] | undefined, parameters: ts.ParameterDeclaration[], implementation: ts.ExpressionStatement | ts.CallExpression) {
