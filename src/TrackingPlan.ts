@@ -23,10 +23,10 @@ export default class TrackingPlan {
   }
 
   parse(plan) {
-    this.parseTracks(plan['tracks'])
-    this.parseScreens(plan['screens'])
-    this.parseDefs(plan['$defs'])
-    this.parseTraits(plan['traits'])
+    this.parseTracks(plan?.tracks)
+    this.parseScreens(plan?.screens)
+    this.parseDefs(plan?.$defs)
+    this.parseTraits(plan?.traits)
   }
 
   parseTraits(traits) {
