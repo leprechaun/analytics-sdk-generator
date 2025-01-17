@@ -197,14 +197,8 @@ export class ScreenAnalyticsFunction extends BaseEvent {
   }
 
   tracks(options?: ToASTOptions) {
-    if(this.screen.tracks.length > 0) {
-      const functionsAndComments = this.screen.tracks.map( track => {
-        return new ScreenSpecificTrackAnalyticsFunction(track, this.screen).toAST(options)
-      })
-
-      return [].concat(...functionsAndComments)
-    } else {
-      return []
-    }
+    return this.screen.tracks.flatMap(track => 
+      new ScreenSpecificTrackAnalyticsFunction(track, this.screen).toAST(options)
+    )
   }
 }
