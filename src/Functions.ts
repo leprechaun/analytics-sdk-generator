@@ -136,7 +136,7 @@ export class AnalyticsFunction {
         factory.createIdentifier("log")
       ),
       undefined,
-      params
+      params.length ? params : [factory.createStringLiteral('No parameters provided')]
     )
   }
 }
