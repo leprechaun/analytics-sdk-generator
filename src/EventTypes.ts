@@ -8,10 +8,10 @@ export class Feature {
   screens: Screen[]
   tracks: Track[]
 
-  constructor(name: string) {
-    this.name = name
-    this.screens = []
-    this.tracks = []
+  constructor(name: string, screens: Screen[] = [], tracks: Track[] = []) {
+    this.name = name;
+    this.screens = screens;
+    this.tracks = tracks;
   }
 
   addScreen(screen: Screen) {
