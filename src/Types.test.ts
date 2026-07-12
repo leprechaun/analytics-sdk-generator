@@ -40,7 +40,7 @@ describe(TypeMapper, () => {
     })
   })
 
-  describe(types.ComplexType, () => {
+  describe("ComplexType", () => {
     describe(types.ArrayType, () => {
       it('understands arrays', () => {
         const t = TypeMapper.toSpecificType({

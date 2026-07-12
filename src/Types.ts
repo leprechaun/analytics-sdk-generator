@@ -19,22 +19,7 @@ export abstract class BaseType {
   }
 }
 
-export abstract class SimpleType extends BaseType {
-}
-
-export abstract class EnumeratedSimpleType extends BaseType {
-}
-
-export abstract class NonEnumeratedSimpleType extends BaseType {
-}
-
-export abstract class PrimitiveType extends BaseType {
-}
-
-export abstract class AnyStringType extends PrimitiveType {
-}
-
-export class StringType extends AnyStringType {
+export class StringType extends BaseType {
   format: string
 
   toAST(options?: ToASTOptions) {
@@ -46,7 +31,7 @@ export class StringType extends AnyStringType {
   }
 }
 
-export abstract class FormattedStringType extends AnyStringType {
+export abstract class FormattedStringType extends BaseType {
   static formats: {
     [key: string]: new (definition: any) => FormattedStringType
   } = {}
@@ -75,7 +60,7 @@ export class DateFormattedStringType extends FormattedStringType {
 
 FormattedStringType.addFormat('date-time', DateFormattedStringType)
 
-export class NumberType extends PrimitiveType {
+export class NumberType extends BaseType {
   format: string
 
   toAST(options?: ToASTOptions) {
@@ -91,7 +76,7 @@ export class NumberType extends PrimitiveType {
   }
 }
 
-export class BooleanType extends PrimitiveType {
+export class BooleanType extends BaseType {
   toAST(options: ToASTOptions) {
     return factory.createKeywordTypeNode(ts.SyntaxKind.BooleanKeyword)
   }
@@ -105,10 +90,7 @@ export class BooleanType extends PrimitiveType {
   }
 }
 
-export abstract class ComplexType extends BaseType {
-}
-
-export class ArrayType extends ComplexType {
+export class ArrayType extends BaseType {
   type: BaseType
 
   constructor(definition: InputTypes.ArrayDefinition) {
@@ -178,7 +160,7 @@ export class ObjectProperty {
   }
 }
 
-export class ObjectType extends ComplexType  {
+export class ObjectType extends BaseType {
   properties: ObjectProperty[]
 
   constructor(definition: InputTypes.ObjectDefinition) {
