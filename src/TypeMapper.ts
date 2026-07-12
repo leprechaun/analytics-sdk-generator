@@ -2,7 +2,7 @@ import * as Types from './Types'
 import * as InputTypes from './InputTypes'
 
 export default class TypeMapper {
-  static addStringFormat(key: string, format: typeof Types.FormattedStringType) {
+  static addStringFormat(key: string, format: new (definition: any) => Types.FormattedStringType) {
     Types.FormattedStringType.addFormat(key, format)
   }
 

@@ -7,33 +7,31 @@ export interface PrintableDataType {
   toAST(options?: ToASTOptions): ts.Node | ts.Node[]
 }
 
-export class BaseType {
+export abstract class BaseType {
   constructor(definition: any) {
     Object.assign(this, definition)
   }
 
-  toAST(options?: ToASTOptions): ts.Node | ts.Node[] {
-    return null as any
-  }
+  abstract toAST(options?: ToASTOptions): ts.Node | ts.Node[]
 
   toPartialLiteralAST(value: any): any {
-    return factory.createStringLiteral("hardcodedlol")
+    throw new Error(`${this.constructor.name} does not implement toPartialLiteralAST`)
   }
 }
 
-export class SimpleType extends BaseType {
+export abstract class SimpleType extends BaseType {
 }
 
-export class EnumeratedSimpleType extends BaseType {
+export abstract class EnumeratedSimpleType extends BaseType {
 }
 
-export class NonEnumeratedSimpleType extends BaseType {
+export abstract class NonEnumeratedSimpleType extends BaseType {
 }
 
-export class PrimitiveType extends BaseType {
+export abstract class PrimitiveType extends BaseType {
 }
 
-export class AnyStringType extends PrimitiveType {
+export abstract class AnyStringType extends PrimitiveType {
 }
 
 export class StringType extends AnyStringType {
@@ -48,12 +46,12 @@ export class StringType extends AnyStringType {
   }
 }
 
-export class FormattedStringType extends AnyStringType {
+export abstract class FormattedStringType extends AnyStringType {
   static formats: {
-    [key: string]: typeof FormattedStringType
+    [key: string]: new (definition: any) => FormattedStringType
   } = {}
 
-  static addFormat(key: string, format: typeof FormattedStringType) {
+  static addFormat(key: string, format: new (definition: any) => FormattedStringType) {
     this.formats[key] = format
   }
 
@@ -107,7 +105,7 @@ export class BooleanType extends PrimitiveType {
   }
 }
 
-export class ComplexType extends BaseType {
+export abstract class ComplexType extends BaseType {
 }
 
 export class ArrayType extends ComplexType {
