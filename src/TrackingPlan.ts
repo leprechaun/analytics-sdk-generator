@@ -53,12 +53,16 @@ export default class TrackingPlan {
     }
   }
 
-  addFeaturesToEvent(definition: EventDefinition, event: EventTypes.Screen | EventTypes.Track, featureKey: 'screens' | 'tracks') {
+  addFeaturesToEvent(definition: EventDefinition, event: EventTypes.Screen | EventTypes.Track) {
     definition.features?.forEach(featureName => {
-      const feature = this.getFeature(featureName);
-      feature[featureKey].push(event);
-      event.features.push(feature);
-    });
+      const feature = this.getOrCreateFeature(featureName)
+      if (event instanceof EventTypes.Screen) {
+        feature.screens.push(event)
+      } else {
+        feature.tracks.push(event)
+      }
+      event.features.push(feature)
+    })
   }
 
   addTracksToScreen(definition: EventDefinition, screen: EventTypes.Screen) {
@@ -74,7 +78,7 @@ export default class TrackingPlan {
   parseScreen(screens, key: string) {
     const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
 
-    this.addFeaturesToEvent(screens[key], screen, 'screens')
+    this.addFeaturesToEvent(screens[key], screen)
     this.addTracksToScreen(screens[key], screen)
 
     return screen
@@ -92,36 +96,29 @@ export default class TrackingPlan {
     for(const key in tracks) {
       const track = new EventTypes.Track({...tracks[key], key} as TrackDefinition)
 
-      this.addFeaturesToEvent(tracks[key], track, 'tracks')
+      this.addFeaturesToEvent(tracks[key], track)
 
       this.tracks.push(track)
     }
   }
 
-  getOrCreate(thing: 'features' | 'tracks' | 'screens', key: 'name' | 'key', name: string, newtype: any | undefined) {
-    const match = this[thing as string].find((f: EventTypes.Screen | EventTypes.Feature | EventTypes.Track) => f[key] == name);
-    
-    if (!match) {
-      if (newtype) {
-        const newthing = new newtype(name);
-        this[thing as string].push(newthing);
-        return newthing;
-      }
-      throw new Error(`Thing(${thing}/${name}) not found`);
-    }
-    
-    return match;
+  getOrCreateFeature(name: string): EventTypes.Feature {
+    const match = this.features.find(f => f.name === name)
+    if (match) return match
+    const feature = new EventTypes.Feature(name)
+    this.features.push(feature)
+    return feature
   }
 
-  getFeature(featureName: string) {
-    return this.getOrCreate('features', 'name', featureName, EventTypes.Feature)
+  getTrack(trackName: string): EventTypes.Track {
+    const match = this.tracks.find(t => t.key === trackName)
+    if (!match) throw new Error(`Track not found: ${trackName}`)
+    return match
   }
 
-  getTrack(trackName: string) {
-    return this.getOrCreate('tracks', 'key', trackName, undefined)
-  }
-
-  getScreen(screenName: string) {
-    return this.getOrCreate('screens', 'key', screenName, undefined)
+  getScreen(screenName: string): EventTypes.Screen {
+    const match = this.screens.find(s => s.key === screenName)
+    if (!match) throw new Error(`Screen not found: ${screenName}`)
+    return match
   }
 }

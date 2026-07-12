@@ -24,32 +24,26 @@ export default class TransliterateCommand {
       ...args,
       methodsAsync: !!args.methodsAsync
     }
-
   }
 
   run() {
-
-    const options = {
+    const options: { methodsAsync: boolean, implementation?: string } = {
       methodsAsync: this.args.methodsAsync
     }
 
-    if(this.args.implementation) {
+    if (this.args.implementation) {
       const implementationSplit = this.args.implementation.split(path.sep)
 
-      if(implementationSplit[0] == '.') {
+      if (implementationSplit[0] == '.') {
         implementationSplit.shift()
       }
 
-      options['implementation'] = "../".repeat(this.args.output.split(path.sep).length - 1) + implementationSplit.join(path.sep)
+      options.implementation = "../".repeat(this.args.output.split(path.sep).length - 1) + implementationSplit.join(path.sep)
     }
-
 
     const plan = this.readTrackingPlan()
     const transliterator = new Transliterator(options)
-
-    const result = transliterator.transliterate(plan)
-
-    this.write(result)
+    this.write(transliterator.transliterate(plan))
   }
 
   readTrackingPlan() {
@@ -59,48 +53,30 @@ export default class TransliterateCommand {
     return new TrackingPlan(contents)
   }
 
-  groupByPath(pathnodes: {path: string[], nodes: ts.Node[]}[]) {
-    return pathnodes.map( pn => {
-      pn.path.unshift(this.args.output)
-      return {
-        path: path.join(...pn.path) + '.ts',
-        nodes: pn.nodes
-      }
-    }).reduce( (accumulated, current) => {
-      const nodes = accumulated[current.path] || []
+  write(files: Map<string, ts.Node[]>) {
+    for (const [key, nodes] of files) {
+      const filepath = path.join(this.args.output, key) + '.ts'
 
-      const newNodes = nodes.concat(current.nodes)
-      accumulated[current.path] = newNodes
-
-      return accumulated
-    }, {})
-  }
-
-  write(pathnodes: {path: string[], nodes: ts.Node[]}[]) {
-    const paths = this.groupByPath(pathnodes)
-
-    for(const filepath in paths) {
-      const nodes = factory.createNodeArray(paths[filepath]);
       const sourceFile = ts.createSourceFile(
         filepath,
         "",
         ts.ScriptTarget.ESNext,
         true,
         ts.ScriptKind.TS
-      );
+      )
 
       const printer = ts.createPrinter({
         omitTrailingSemicolon: true
-      });
+      })
 
       const outputFile = printer.printList(
         ts.ListFormat.MultiLine,
-        nodes,
+        factory.createNodeArray(nodes),
         sourceFile
-      );
+      )
 
-      fs.mkdirSync(path.dirname(filepath), { recursive: true });
-      fs.writeFileSync(filepath, outputFile);
+      fs.mkdirSync(path.dirname(filepath), { recursive: true })
+      fs.writeFileSync(filepath, outputFile)
     }
   }
 }

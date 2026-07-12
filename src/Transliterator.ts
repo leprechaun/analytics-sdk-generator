@@ -3,182 +3,76 @@ import ts, { factory } from 'typescript'
 import TrackingPlan from './TrackingPlan'
 import TypeMapper from './TypeMapper'
 import { NamedType } from './Types'
-import { Screen } from './EventTypes'
 import * as functions from './Functions'
-
-export type FileNodes = {
-  path: string[],
-  nodes: ts.Node[]
-}
-
-export type FileNodesList = FileNodes[]
 
 export default class Transliterator {
   options: {
     implementation?: string
     methodsAsync: boolean
   }
+
   constructor(options?: {
     implementation?: string,
     methodsAsync?: boolean
   }) {
     this.options = {
       ...options,
-      methodsAsync: options.methodsAsync
+      methodsAsync: options?.methodsAsync ?? false
     }
   }
 
-  sharedEnum(path: string[], name: string, values: string[], description: string) {
-    return {
-      path,
-      nodes: new NamedType(name, TypeMapper.toSpecificType({
-        type: 'string',
-        enum: values,
-      }), description).toAST()
-    }
+  private push(acc: Map<string, ts.Node[]>, key: string, nodes: ts.Node | ts.Node[]) {
+    const existing = acc.get(key) ?? []
+    acc.set(key, existing.concat(Array.isArray(nodes) ? nodes : [nodes]))
   }
 
-  featureNamesType(plan: TrackingPlan) {
-    return this.sharedEnum(
-      ['shared-definitions'],
-      'FeatureNames',
-      plan.features.map( f => f.name as string ),
-      "List of all the feature names"
-    )
+  private sharedEnum(name: string, values: string[], description: string): ts.Node[] {
+    return new NamedType(name, TypeMapper.toSpecificType({
+      type: 'string',
+      enum: values,
+    }), description).toAST()
   }
 
-  screenNamesType(plan: TrackingPlan) {
-    return this.sharedEnum(
-      ['shared-definitions'],
-      'ScreenNames',
-      plan.screens.map( f => f.name as string ),
-      "List of all the screen names"
-    )
-  }
-
-  screenFunction(screen: Screen, importMappings: {[key: string]: string[]}) {
-    const nodes = []
-    nodes.push({
-      path: ['screens', screen.escapeKey()],
-      nodes: [this.sharedDefsImport("../shared-definitions")]
-    })
-
-    if(this.options.implementation) {
-      nodes.push({
-        path: ['screens', screen.escapeKey()],
-        nodes: [this.importImplementation("../" + this.options.implementation)]
-      })
+  transliterate(plan: TrackingPlan): Map<string, ts.Node[]> {
+    const acc = new Map<string, ts.Node[]>()
+    const importMappings = { "$defs": ["shared-definitions", "shared"] }
+    const toASTOptions = {
+      importMappings,
+      hasImplementation: !!this.options.implementation,
+      methodsAsync: this.options.methodsAsync
     }
 
-    nodes.push({
-      path: ['screens', screen.escapeKey()],
-      nodes: [this.reExportSharedDefs("../shared-definitions")]
-    })
-
-    nodes.push({
-      path: [
-        'screens',
-        screen.escapeKey()
-      ],
-      nodes: functions.screenToAST(screen, { importMappings, hasImplementation: !!this.options?.implementation, methodsAsync: this.options.methodsAsync })
-    })
-
-    return nodes
-  }
-
-  screenFunctions(plan: TrackingPlan, importMappings) {
-    let nodes = []
-    for(const screen of plan.screens) {
-      nodes = nodes.concat(this.screenFunction(screen, importMappings))
+    this.push(acc, 'shared-definitions', this.sharedEnum('FeatureNames', plan.features.map(f => f.name), "List of all the feature names"))
+    this.push(acc, 'shared-definitions', this.sharedEnum('ScreenNames', plan.screens.map(f => f.name), "List of all the screen names"))
+    for (const def of plan.defs) {
+      this.push(acc, 'shared-definitions', def.toAST({}))
     }
 
-    return nodes
-  }
-
-  trackFunctions(plan: TrackingPlan, importMappings) {
-    const nodes = []
-    nodes.push({
-      path: ['tracks'],
-      nodes: [this.sharedDefsImport("./shared-definitions")]
-    })
-
-    if(this.options.implementation) {
-      nodes.push({
-        path: ['tracks'],
-        nodes: [this.importImplementation(this.options.implementation)]
-      })
+    this.push(acc, 'tracks', this.sharedDefsImport('./shared-definitions'))
+    if (this.options.implementation) {
+      this.push(acc, 'tracks', this.importImplementation(this.options.implementation))
+    }
+    this.push(acc, 'tracks', this.reExportSharedDefs('./shared-definitions'))
+    for (const track of plan.tracks) {
+      this.push(acc, 'tracks', functions.trackToAST(track, toASTOptions))
     }
 
-    nodes.push({
-      path: ['tracks'],
-      nodes: [this.reExportSharedDefs("./shared-definitions")]
-    })
-
-    for(const track of plan.tracks) {
-      nodes.push({
-        path: [
-          'tracks',
-        ],
-        nodes: functions.trackToAST(track, {importMappings, hasImplementation: !!this.options.implementation, methodsAsync: this.options.methodsAsync})
-      })
+    for (const screen of plan.screens) {
+      const key = `screens/${screen.escapeKey()}`
+      this.push(acc, key, this.sharedDefsImport('../shared-definitions'))
+      if (this.options.implementation) {
+        this.push(acc, key, this.importImplementation('../' + this.options.implementation))
+      }
+      this.push(acc, key, this.reExportSharedDefs('../shared-definitions'))
+      this.push(acc, key, functions.screenToAST(screen, toASTOptions))
     }
 
-    return nodes
-  }
-
-  traits(plan: TrackingPlan, importMappings) {
-    const nodes = []
-
-    nodes.push({
-      path: ['shared-traits'],
-      nodes: [this.sharedDefsImport("./shared-definitions")]
-    })
-
-    for(const trait of plan.traits) {
-      nodes.push(
-        {
-          path: ['shared-traits'],
-          nodes: trait.toAST({importMappings})
-        }
-      )
+    this.push(acc, 'shared-traits', this.sharedDefsImport('./shared-definitions'))
+    for (const trait of plan.traits) {
+      this.push(acc, 'shared-traits', trait.toAST({ importMappings }))
     }
 
-    return nodes
-  }
-
-  defs(plan: TrackingPlan) {
-    const nodes = []
-    for(const definition of plan.defs) {
-      nodes.push(
-        {
-          path: ['shared-definitions'],
-          nodes: definition.toAST({})
-        }
-      )
-    }
-
-    return nodes
-  }
-
-  transliterate(plan: TrackingPlan): FileNodesList {
-    const nodes: FileNodesList = []
-
-    const importMappings = {
-      "$defs": ["shared-definitions", "shared"]
-    }
-
-    nodes.push(this.featureNamesType(plan))
-    nodes.push(this.screenNamesType(plan))
-
-    return nodes.concat(
-      this.screenFunctions(plan, importMappings)
-    ).concat(
-      this.trackFunctions(plan, importMappings)
-    ).concat(
-      this.traits(plan, importMappings)
-    ).concat(
-      this.defs(plan)
-    )
+    return acc
   }
 
   importImplementation(path: string) {
