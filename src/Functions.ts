@@ -15,34 +15,6 @@ type ToASTOptions = {
   methodsAsync: boolean
 }
 
-class BaseEvent {
-  comment(event: Screen | Track) {
-    const nodes = []
-
-    if(event.description) {
-      nodes.push(factory.createJSDocComment(event.description))
-    }
-
-    return nodes
-  }
-
-  asNamedExport(event: Screen | Track, options: ToASTOptions) {
-    return [factory.createVariableStatement(
-      [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-      factory.createVariableDeclarationList(
-        [factory.createVariableDeclaration(
-          factory.createIdentifier(event.escapeKey()),
-          undefined,
-          undefined,
-          new AnalyticsFunction(event).toAST(options)
-        )],
-        ts.NodeFlags.Const
-      )
-    )]
-  }
-
-}
-
 export class AnalyticsFunction {
   event: Track | Screen
 
@@ -67,23 +39,23 @@ export class AnalyticsFunction {
       : this.parameter("props", properties.toAST(options), false)
   }
 
-  sourceParameter(options?: ToASTOptions) {
-    const sourceType = this.event.sourceToObjectType().toAST(options)
+  sourceParameter(source: ObjectType, options?: ToASTOptions) {
+    const sourceType = source.toAST(options)
     return this.parameter(
-      "source", 
-      ts.isTypeLiteralNode(sourceType) 
+      "source",
+      ts.isTypeLiteralNode(sourceType)
         ? factory.createTypeLiteralNode(sourceType.members)
         : factory.createTypeLiteralNode([]),
       true
     )
   }
 
-  implementation(options: ToASTOptions) {
+  implementation(options: ToASTOptions, source: ObjectType) {
     const params = [
       factory.createStringLiteral(this.event.type),
       factory.createStringLiteral(this.event.name),
       factory.createIdentifier("props"),
-      this.event.sourceToObjectType().toPartialLiteralAST("source")
+      source.toPartialLiteralAST("source")
     ]
 
     return options.hasImplementation
@@ -106,13 +78,14 @@ export class AnalyticsFunction {
   }
 
   toAST(options?: ToASTOptions) {
+    const source = this.event.sourceToObjectType()
     return this.fn(
       options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
       [
         this.propsParameter(this.event.properties, options),
-        this.sourceParameter(options),
+        this.sourceParameter(source, options),
       ],
-      this.implementation(options)
+      this.implementation(options, source)
     )
   }
 
@@ -137,69 +110,42 @@ export class AnalyticsFunction {
         factory.createIdentifier("log")
       ),
       undefined,
-      params.length ? params : [factory.createStringLiteral('No parameters provided')]
+      params
     )
   }
 }
 
-export class TrackFunction extends BaseEvent {
-  track: Track
-
-  toAST(options?: ToASTOptions) {
-    const comment = this.comment(this.track)
-    const main = this.asNamedExport(this.track, options)
-
-    return comment.concat(main)
-  }
+function comment(event: Screen | Track): ts.Node[] {
+  return event.description ? [factory.createJSDocComment(event.description)] : []
 }
 
-export class TrackAnalyticsFunction extends TrackFunction {
-  track: Track
-
-  constructor(track: Track) {
-    super()
-    this.track = track
-  }
-}
-
-export class ScreenSpecificTrackAnalyticsFunction extends TrackFunction {
-  track: Track
-  screen: Screen
-
-  constructor(track: Track, screen: Screen) {
-    super()
-    this.track = track
-    this.screen = screen
-  }
-}
-
-export class ScreenAnalyticsFunction extends BaseEvent {
-  screen: Screen
-
-  constructor(screen: Screen) {
-    super()
-    this.screen = screen
-  }
-
-  toAST(options?: ToASTOptions): ts.Node[] {
-    const comment = this.comment(this.screen)
-    const main = [
-      factory.createExportAssignment(
+function namedExport(event: Screen | Track, options: ToASTOptions): ts.Node[] {
+  return [factory.createVariableStatement(
+    [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    factory.createVariableDeclarationList(
+      [factory.createVariableDeclaration(
+        factory.createIdentifier(event.escapeKey()),
         undefined,
         undefined,
-        new AnalyticsFunction(this.screen).toAST({
-          ...options
-        })
-      )
-    ]
-
-    const tracks = this.tracks(options)
-    return comment.concat(main).concat(tracks)
-  }
-
-  tracks(options?: ToASTOptions) {
-    return this.screen.tracks.flatMap(track => 
-      new ScreenSpecificTrackAnalyticsFunction(track, this.screen).toAST(options)
+        new AnalyticsFunction(event).toAST(options)
+      )],
+      ts.NodeFlags.Const
     )
-  }
+  )]
+}
+
+export function trackToAST(track: Track, options: ToASTOptions): ts.Node[] {
+  return [...comment(track), ...namedExport(track, options)]
+}
+
+export function screenToAST(screen: Screen, options: ToASTOptions): ts.Node[] {
+  return [
+    ...comment(screen),
+    factory.createExportAssignment(
+      undefined,
+      undefined,
+      new AnalyticsFunction(screen).toAST(options)
+    ),
+    ...screen.tracks.flatMap(track => trackToAST(track, options))
+  ]
 }

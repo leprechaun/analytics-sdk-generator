@@ -243,15 +243,13 @@ describe(functions.AnalyticsFunction, () => {
   })
 })
 
-describe(functions.ScreenAnalyticsFunction, () => {
-  const screen = new EventTypes.Screen({
-    key: "SomeScreen",
-    name: "Some Screen"
-  })
-  const fn = new functions.ScreenAnalyticsFunction(screen)
-
+describe("screenToAST", () => {
   describe('a bare screen without tracks', () => {
-    const ast = fn.toAST({methodsAsync: true})
+    const screen = new EventTypes.Screen({
+      key: "SomeScreen",
+      name: "Some Screen"
+    })
+    const ast = functions.screenToAST(screen, {methodsAsync: true})
     const main = ast[0]
 
     it('just has one statement', () => {
@@ -261,18 +259,15 @@ describe(functions.ScreenAnalyticsFunction, () => {
     it('default exports an AnalyticsFunction', () => {
       expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
       expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-      expect((main as any).expression.expression).toEqual((fn.toAST()[0] as any).body)
     })
 
-    describe('a bare screen and description without tracks', () => {
+    describe('with a description', () => {
       const screen = new EventTypes.Screen({
         key: "SomeScreen",
         name: "Some Screen",
         description: "blah blah"
       })
-      const fn = new functions.ScreenAnalyticsFunction(screen)
-
-      const ast = fn.toAST({methodsAsync: true})
+      const ast = functions.screenToAST(screen, {methodsAsync: true})
       const comment = ast[0]
       const main = ast[1]
 
@@ -288,7 +283,6 @@ describe(functions.ScreenAnalyticsFunction, () => {
       it('default exports an AnalyticsFunction', () => {
         expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
         expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-        expect((main as any).expression.expression).toEqual((fn.toAST({methodsAsync: true})[0] as any).body)
       })
     })
   })
@@ -298,57 +292,34 @@ describe(functions.ScreenAnalyticsFunction, () => {
       key: "SomeScreen",
       name: "Some Screen"
     })
-    screen.tracks.push(new EventTypes.Track({
-      key: "sometrack"
-    }))
-    screen.tracks.push(new EventTypes.Track({
-      key: "anothertrack"
-    }))
+    screen.tracks.push(new EventTypes.Track({ key: "sometrack" }))
+    screen.tracks.push(new EventTypes.Track({ key: "anothertrack" }))
 
-    const fn = new functions.ScreenAnalyticsFunction(screen)
+    const ast = functions.screenToAST(screen, {methodsAsync: true})
+    const main = ast[0]
 
-    describe('the screen', () => {
-      const ast = fn.toAST({methodsAsync: true})
-      const main = ast[0]
+    it('has one statement for each', () => {
+      expect((ast as any).length).toEqual(3)
+    })
 
-      it('has one statement for each', () => {
-        expect((ast as any).length).toEqual(3)
-      })
+    it('default exports an AnalyticsFunction', () => {
+      expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
+      expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
+    })
 
-      it('default exports an AnalyticsFunction', () => {
-        expect(main.kind).toEqual(ts.SyntaxKind.ExportAssignment)
-        expect((main as any).expression.kind).toEqual(ts.SyntaxKind.ArrowFunction)
-        expect((main as any).expression.expression).toEqual((fn.toAST({methodsAsync: true})[0] as any).body)
-      })
+    it('exports a named function for the first track', () => {
+      expect(ast[1].kind).toEqual(ts.SyntaxKind.VariableStatement)
+      expect((ast[1] as any).declarationList.declarations[0].name.escapedText).toEqual('sometrack')
+    })
 
-      it('calls tracks with the same ToASTOptions', () => {
-        const saf = new functions.ScreenAnalyticsFunction(screen)
-        jest.spyOn(saf, 'tracks')
-
-        const toASTOptions = {importMappings: {"$defs": ['foo', 'bar']}, methodsAsync: true}
-
-        saf.toAST(toASTOptions)
-
-        expect(saf.tracks).toHaveBeenCalledWith(toASTOptions)
-      })
-
-
-      it('exports named functions for each track', () => {
-        expect(ast[1].kind).toEqual(ts.SyntaxKind.VariableStatement)
-        expect((ast[1] as any).declarationList.declarations.length).toEqual(1)
-        expect((ast[1] as any).declarationList.declarations[0].name.escapedText).toEqual('sometrack')
-      })
-
-      it('exports named functions for each track', () => {
-        expect(ast[2].kind).toEqual(ts.SyntaxKind.VariableStatement)
-        expect((ast[2] as any).declarationList.declarations.length).toEqual(1)
-        expect((ast[2] as any).declarationList.declarations[0].name.escapedText).toEqual('anothertrack')
-      })
+    it('exports a named function for the second track', () => {
+      expect(ast[2].kind).toEqual(ts.SyntaxKind.VariableStatement)
+      expect((ast[2] as any).declarationList.declarations[0].name.escapedText).toEqual('anothertrack')
     })
   })
 })
 
-describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
+describe("trackToAST", () => {
   const screen = new EventTypes.Screen({
     key: "SomeScreen",
     name: "Some Screen"
@@ -360,13 +331,11 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
     description: "hello world"
   })
 
-  const fn = new functions.ScreenSpecificTrackAnalyticsFunction(track, screen)
-
-  const ast = fn.toAST({methodsAsync: true})
+  const ast = functions.trackToAST(track, {methodsAsync: true})
   const comment = ast[0]
   const main = ast[1]
 
-  const declaration = main.declarationList.declarations[0]
+  const declaration = (main as any).declarationList.declarations[0]
 
   it('has a comment', () => {
     expect(comment.kind).toEqual(ts.SyntaxKind.JSDocComment)
@@ -381,5 +350,4 @@ describe(functions.ScreenSpecificTrackAnalyticsFunction, () => {
   it('should use AnalyticsFunction', () => {
     expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({methodsAsync: true}))
   })
-
 })

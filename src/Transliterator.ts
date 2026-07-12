@@ -80,7 +80,7 @@ export default class Transliterator {
         'screens',
         screen.escapeKey()
       ],
-      nodes: new functions.ScreenAnalyticsFunction(screen).toAST({ importMappings, hasImplementation: !!this.options?.implementation, methodsAsync: this.options.methodsAsync })
+      nodes: functions.screenToAST(screen, { importMappings, hasImplementation: !!this.options?.implementation, methodsAsync: this.options.methodsAsync })
     })
 
     return nodes
@@ -119,7 +119,7 @@ export default class Transliterator {
         path: [
           'tracks',
         ],
-        nodes: new functions.TrackAnalyticsFunction(track).toAST({importMappings, hasImplementation: !!this.options.implementation, methodsAsync: this.options.methodsAsync})
+        nodes: functions.trackToAST(track, {importMappings, hasImplementation: !!this.options.implementation, methodsAsync: this.options.methodsAsync})
       })
     }
 
