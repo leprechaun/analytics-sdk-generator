@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "yaml": "^2.0.0",
-    "yargs": "^17.1.1"
+    "yargs": "^18.0.0"
   },
   "scripts": {
     "test:e2e": "jest e2e/",
