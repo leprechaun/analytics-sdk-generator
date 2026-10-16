@@ -42,7 +42,7 @@
     "@types/node": "^26.2.0",
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
-    "eslint": "^8.1.0",
+    "eslint": "^10.0.0",
     "jest": "^30.0.0",
     "jest-xunit": "^1.0.11",
     "stryker-cli": "^1.0.2",
