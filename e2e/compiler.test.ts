@@ -9,6 +9,7 @@ function compile(fileNames: string[]): {
   const options = {
     noEmit: true,
     noImplicitAny: true,
+    skipLibCheck: true,
     target: ts.ScriptTarget.ES5,
     module: ts.ModuleKind.CommonJS,
   } as ts.CompilerOptions
