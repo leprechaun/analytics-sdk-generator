@@ -97,7 +97,7 @@ One of create a union type between any supported data type. Unions of only one t
 
 ## File sections
 
-The file is divided in 6 sections.
+The file is divided in 7 sections.
 
 ### Header
 
@@ -175,7 +175,28 @@ source:
       const: web
 ```
 
+### Views
+
+A view is a place the user can be in your product, declared once whatever the platform. It appears as a screen in mobile apps, as a page on the web, or both, as listed in `on`.
+
+```
+views:
+  Login:
+    on:
+    - screen
+    features:
+    - Onboarding
+    tracks:
+    - LoginFailed
+```
+
+A view accepts everything a screen does (see below), plus `on`, which lists `screen`, `page`, or both. It defaults to both.
+
+A name can be declared in `views` or `screens`, not both.
+
 ### Screens
+
+`screens` is shorthand for views that appear only as screens: an entry here is the same as a `views` entry with `on: [screen]`.
 
 Screens (and Tracks) are the two main event types, and as such are first class citizens.
 
@@ -252,3 +273,30 @@ screen({is_first_open: true, another_property: "some string"})
 //  emit type: track, name: SomeTrack, {some_property}
 tracks.SomeTrack({some_property: "another property"})
 ```
+
+Views appearing as pages result in a file in `./$outputDirectory/pages/$EventKey.ts`, whose default export emits that page event. A page event's source names the `page`, filled in for you, and accepts an optional `url`. The generator never fills in the `url`: your implementation should, typically from `window.location`, when the caller doesn't pass one.
+
+All `track` events associated with this view are also included in its page file, exported by name. Their source names the `page` instead of a `screen`, and also accepts an optional `url`. A view appearing as both a screen and a page exports its tracks from both files.
+
+```
+import page, * as tracks from './$outputDirectory/pages/Login'
+
+//  emit type: page, name: Login, source: {page: "Login", ...}
+page()
+
+//  emit type: track, name: LoginFailed, source: {page: "Login", url, ...}
+tracks.LoginFailed({reason: "timeout"}, {url: window.location.href})
+```
+
+`shared-definitions.ts` lists the names of every screen (`ScreenNames`), page (`PageNames`) and view (`ViewNames`). A list with no names is `never`.
+
+Every `track` event is also exported by name from `./$outputDirectory/tracks.ts`, not tied to any one view. When it can be fired from both screens and pages, its source names exactly one of them: either a `screen`, or a `page` and optionally its `url`. A track attached to exactly one screen, and nothing else, still has that screen filled in for you.
+
+```
+import * as tracks from './$outputDirectory/tracks'
+
+tracks.LoginFailed({reason: "timeout"}, {screen: "Login"})
+tracks.LoginFailed({reason: "timeout"}, {page: "Login", url: window.location.href})
+```
+
+A plan without screens or pages has no `screen` or `page` source attribute, and a plan without features has no `feature` source attribute.
