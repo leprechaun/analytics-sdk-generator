@@ -1,0 +1,643 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`generated output for the example Tracking Plan is unchanged with an async implementation 1`] = `
+{
+  "screens/CompanyProfile": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+/**
+ * laksjdlkjasdkljsd */
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("screen", "CompanyProfile", props, {
+        ...source
+    });
+};
+export const CompanyProfileCompleted = async (props: {
+    hasAddress?: boolean;
+    companyType: "llc" | "corporation";
+    sectors: shared.Sector[];
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "CompanyProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("track", "CompanyProfileCompleted", props, {
+        screen: "CompanyProfile",
+        ...source
+    });
+};
+",
+  "screens/FirstFeatureLanding": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    await implementation("screen", "FirstFeatureLanding", props, {
+        ...source
+    });
+};
+",
+  "screens/Login": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+/**
+ * Screen that prompts for login, forwards to a social login provider */
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature?: "Onboarding";
+}) => {
+    await implementation("screen", "Login", props, {
+        feature: "Onboarding",
+        ...source
+    });
+};
+export const LoginInitiated = async (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginInitiated", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+export const LoginFailed = async (props: {
+    provider: shared.login_provider;
+    reason?: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginFailed", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+export const LoginSuccess = async (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginSuccess", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+",
+  "screens/SecondFeatureLanding": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    await implementation("screen", "SecondFeatureLanding", props, {
+        ...source
+    });
+};
+",
+  "screens/Splash": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+/**
+ * Screen displayed while the app is loading */
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    await implementation("screen", "Splash", props, {
+        ...source
+    });
+};
+",
+  "screens/UserProfile": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+/**
+ * Screen where the user can fill in their personal information */
+export default async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("screen", "UserProfile", props, {
+        ...source
+    });
+};
+export const UserProfileCompleted = async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "UserProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("track", "UserProfileCompleted", props, {
+        screen: "UserProfile",
+        ...source
+    });
+};
+",
+  "screens/ValueProposition": "import * as shared from "../shared-definitions";
+import implementation from ".././implementation";
+export * as Types from "../shared-definitions";
+/**
+ * Swipable, and skippable, carousel like screen that shows why people should use our app */
+export default async (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    await implementation("screen", "ValueProposition", props, {
+        ...source
+    });
+};
+export const SkipValueProp = async (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "ValueProposition";
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    await implementation("track", "SkipValueProp", props, {
+        screen: "ValueProposition",
+        ...source
+    });
+};
+",
+  "shared-definitions": "/**
+ * List of all the feature names */
+export type FeatureNames = "Onboarding" | "AnotherFeature" | "Account";
+/**
+ * List of all the screen names */
+export type ScreenNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
+export type Sector = "Retail" | "IT" | "F&B";
+export type login_provider = "auth0" | "facebook" | "apple";
+",
+  "shared-traits": "import * as shared from "./shared-definitions";
+export type test = shared.login_provider;
+",
+  "tracks": "import * as shared from "./shared-definitions";
+import implementation from "./implementation";
+export * as Types from "./shared-definitions";
+/**
+ * Indicates that the user pressed the skip button on a particular value proposition */
+export const SkipValueProp = async (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "ValueProposition";
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    await implementation("track", "SkipValueProp", props, {
+        screen: "ValueProposition",
+        ...source
+    });
+};
+/**
+ * Indicates that the user intiated a login, we should expect a success, cancellation, or failure shortly */
+export const LoginInitiated = async (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginInitiated", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+/**
+ * Indicates the login has failed */
+export const LoginFailed = async (props: {
+    provider: shared.login_provider;
+    reason?: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginFailed", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+/**
+ * Indicates the login has succeeded */
+export const LoginSuccess = async (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    await implementation("track", "LoginSuccess", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    });
+};
+export const UserProfileCompleted = async (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "UserProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("track", "UserProfileCompleted", props, {
+        screen: "UserProfile",
+        ...source
+    });
+};
+/**
+ * Indicates the user has completed a company profile */
+export const CompanyProfileCompleted = async (props: {
+    hasAddress?: boolean;
+    companyType: "llc" | "corporation";
+    sectors: shared.Sector[];
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "CompanyProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    await implementation("track", "CompanyProfileCompleted", props, {
+        screen: "CompanyProfile",
+        ...source
+    });
+};
+",
+}
+`;
+
+exports[`generated output for the example Tracking Plan is unchanged without an implementation 1`] = `
+{
+  "screens/CompanyProfile": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+/**
+ * laksjdlkjasdkljsd */
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("screen", "CompanyProfile", props, {
+        ...source
+    })
+};
+export const CompanyProfileCompleted = (props: {
+    hasAddress?: boolean;
+    companyType: "llc" | "corporation";
+    sectors: shared.Sector[];
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "CompanyProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("track", "CompanyProfileCompleted", props, {
+        screen: "CompanyProfile",
+        ...source
+    })
+};
+",
+  "screens/FirstFeatureLanding": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    console.log("screen", "FirstFeatureLanding", props, {
+        ...source
+    })
+};
+",
+  "screens/Login": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+/**
+ * Screen that prompts for login, forwards to a social login provider */
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature?: "Onboarding";
+}) => {
+    console.log("screen", "Login", props, {
+        feature: "Onboarding",
+        ...source
+    })
+};
+export const LoginInitiated = (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginInitiated", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+export const LoginFailed = (props: {
+    provider: shared.login_provider;
+    reason?: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginFailed", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+export const LoginSuccess = (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginSuccess", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+",
+  "screens/SecondFeatureLanding": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    console.log("screen", "SecondFeatureLanding", props, {
+        ...source
+    })
+};
+",
+  "screens/Splash": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+/**
+ * Screen displayed while the app is loading */
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: shared.FeatureNames;
+}) => {
+    console.log("screen", "Splash", props, {
+        ...source
+    })
+};
+",
+  "screens/UserProfile": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+/**
+ * Screen where the user can fill in their personal information */
+export default (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("screen", "UserProfile", props, {
+        ...source
+    })
+};
+export const UserProfileCompleted = (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "UserProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("track", "UserProfileCompleted", props, {
+        screen: "UserProfile",
+        ...source
+    })
+};
+",
+  "screens/ValueProposition": "import * as shared from "../shared-definitions";
+export * as Types from "../shared-definitions";
+/**
+ * Swipable, and skippable, carousel like screen that shows why people should use our app */
+export default (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen: shared.ScreenNames;
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    console.log("screen", "ValueProposition", props, {
+        ...source
+    })
+};
+export const SkipValueProp = (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "ValueProposition";
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    console.log("track", "SkipValueProp", props, {
+        screen: "ValueProposition",
+        ...source
+    })
+};
+",
+  "shared-definitions": "/**
+ * List of all the feature names */
+export type FeatureNames = "Onboarding" | "AnotherFeature" | "Account";
+/**
+ * List of all the screen names */
+export type ScreenNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
+export type Sector = "Retail" | "IT" | "F&B";
+export type login_provider = "auth0" | "facebook" | "apple";
+",
+  "shared-traits": "import * as shared from "./shared-definitions";
+export type test = shared.login_provider;
+",
+  "tracks": "import * as shared from "./shared-definitions";
+export * as Types from "./shared-definitions";
+/**
+ * Indicates that the user pressed the skip button on a particular value proposition */
+export const SkipValueProp = (props: {
+    title: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "ValueProposition";
+    feature: "Onboarding" | "AnotherFeature";
+}) => {
+    console.log("track", "SkipValueProp", props, {
+        screen: "ValueProposition",
+        ...source
+    })
+};
+/**
+ * Indicates that the user intiated a login, we should expect a success, cancellation, or failure shortly */
+export const LoginInitiated = (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginInitiated", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+/**
+ * Indicates the login has failed */
+export const LoginFailed = (props: {
+    provider: shared.login_provider;
+    reason?: string;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginFailed", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+/**
+ * Indicates the login has succeeded */
+export const LoginSuccess = (props: {
+    provider: shared.login_provider;
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "Login";
+    feature?: "Onboarding";
+}) => {
+    console.log("track", "LoginSuccess", props, {
+        screen: "Login",
+        feature: "Onboarding",
+        ...source
+    })
+};
+export const UserProfileCompleted = (props?: null, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "UserProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("track", "UserProfileCompleted", props, {
+        screen: "UserProfile",
+        ...source
+    })
+};
+/**
+ * Indicates the user has completed a company profile */
+export const CompanyProfileCompleted = (props: {
+    hasAddress?: boolean;
+    companyType: "llc" | "corporation";
+    sectors: shared.Sector[];
+}, source?: {
+    widget?: string;
+    element?: string;
+    action?: string;
+    screen?: "CompanyProfile";
+    feature: "Onboarding" | "Account";
+}) => {
+    console.log("track", "CompanyProfileCompleted", props, {
+        screen: "CompanyProfile",
+        ...source
+    })
+};
+",
+}
+`;

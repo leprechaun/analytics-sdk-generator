@@ -1,7 +1,8 @@
 import TypeMapper from './TypeMapper'
 import * as InputTypes from './InputTypes'
 import { EventDefinition, TrackDefinition, ScreenDefinition, ObjectDefinition } from './InputTypes'
-import { ObjectType } from './Types'
+import { Constant, ObjectType } from './Types'
+import { defaultSourceDefinition } from './Source'
 
 export class Feature {
   name: string
@@ -116,16 +117,12 @@ export class Event {
     return [required, type]
   }
 
-  sourceToObjectType() {
+  sourceToObjectType(source: ObjectDefinition = defaultSourceDefinition) {
     const screensAndFeatures = this.uniqueFeaturesAndScreens();
-    
-    const properties = {
-      widget: {type: 'string'},
-      element: {type: 'string'},
-      action: {type: 'string'}
-    };
 
-    const required = [];
+    const properties = { ...source.properties };
+
+    const required = [...(source.required ?? [])];
 
     const [screenRequired, screenType] = this.toEnumAndRequired(screensAndFeatures.screens, "ScreenNames");
     properties['screen'] = screenType;
@@ -135,11 +132,21 @@ export class Event {
     properties['feature'] = featureType;
     if (featureRequired) required.push('feature');
 
-    return new ObjectType({
+    const objectType = new ObjectType({
       type: 'object',
       properties,
       required
     } as InputTypes.ObjectDefinition);
+
+    // Constants declared in the Tracking Plan's Source are defaults the caller may override
+    for (const property of objectType.properties) {
+      if (property.name in source.properties && property.type instanceof Constant) {
+        property.type.overridable = true;
+        property.required = false;
+      }
+    }
+
+    return objectType;
   }
 }
 

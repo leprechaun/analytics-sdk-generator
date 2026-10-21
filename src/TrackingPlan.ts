@@ -1,6 +1,7 @@
 import * as EventTypes from './EventTypes'
 import TypeMapper from './TypeMapper'
-import { EventDefinition, ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
+import { EventDefinition, ObjectDefinition, ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
+import { defaultSourceDefinition, reservedSourceAttributes } from './Source'
 
 import {
   NamedType,
@@ -12,6 +13,7 @@ export default class TrackingPlan {
   tracks: EventTypes.Track[]
   defs: NamedType[]
   traits: NamedType[]
+  source: ObjectDefinition
 
   constructor(plan: any) {
     this.features = []
@@ -19,6 +21,7 @@ export default class TrackingPlan {
     this.tracks = []
     this.defs = []
     this.traits = []
+    this.source = defaultSourceDefinition
     this.parse(plan)
   }
 
@@ -27,6 +30,18 @@ export default class TrackingPlan {
     this.parseScreens(plan?.screens)
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
+    this.parseSource(plan?.source)
+  }
+
+  parseSource(source) {
+    if(source) {
+      const reserved = Object.keys(source.properties ?? {}).filter(name => reservedSourceAttributes.includes(name))
+      if(reserved.length > 0) {
+        throw new Error(`Reserved Source attributes cannot be declared in \`source\`: ${reserved.join(', ')}`)
+      }
+
+      this.source = { type: 'object', ...source }
+    }
   }
 
   parseTraits(traits) {

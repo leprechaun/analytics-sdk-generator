@@ -97,7 +97,7 @@ One of create a union type between any supported data type. Unions of only one t
 
 ## File sections
 
-The file is divided in 4 sections.
+The file is divided in 6 sections.
 
 ### Header
 
@@ -140,6 +140,39 @@ traits:
     - end_user
   users_thing:
     $ref: "#/$defs/YourThing"
+```
+
+### Source
+
+Every event can be given a `source`, describing where in the app it originated. The `screen` and `feature` source attributes are always derived from your screens and features. The remaining source attributes default to `widget`, `element` and `action`, all optional strings.
+
+To use your own source attributes instead, declare a `source` block. It is an object in json-schema form, like event `properties`, and **replaces** the defaults entirely.
+
+```
+source:
+  required:
+  - campaign
+  properties:
+    campaign:
+      $ref: "#/$defs/Campaign"
+    placement:
+      type: string
+      enum:
+      - header
+      - footer
+```
+
+`required` lists the source attributes every event must be given. Any source attribute not declared here is rejected at compile time.
+
+`screen`, `feature`, `page` and `url` are reserved: the generator derives them, so declaring any of them in `source` fails the build.
+
+A source attribute declared as a `const` is a default: it is sent with every event without being passed, and is always optional. A caller can still pass a different value of the same type, which replaces the default for that event.
+
+```
+source:
+  properties:
+    platform:
+      const: web
 ```
 
 ### Screens

@@ -1,0 +1,31 @@
+source:
+  required:
+    - campaign
+    - platform
+  properties:
+    platform:
+      const: web
+    campaign:
+      $ref: "#/$defs/Campaign"
+    placement:
+      type: string
+      enum:
+        - header
+        - footer
+
+$defs:
+  Campaign:
+    type: string
+    enum:
+      - spring
+      - autumn
+
+screens:
+  Home:
+    features:
+      - Onboarding
+    tracks:
+      - BannerClicked
+
+tracks:
+  BannerClicked: {}

@@ -1,5 +1,7 @@
 import ts from "typescript";
 
+import TransliterateCommand from "../src/commands/TransliterateCommand";
+
 function compile(fileNames: string[]): {
   result?: boolean,
   diagnostics: any[]
@@ -71,6 +73,51 @@ describe("Compilation tests", () => {
       expect(result.result).toBeFalsy()
       expect(result.diagnostics[0].message).toEqual(
         expect.stringContaining("not assignable to parameter of type 'null'")
+      )
+    })
+  })
+
+  describe('configured Source attributes', () => {
+    beforeAll(() => {
+      new TransliterateCommand({
+        schema_path: './e2e/source-examples/plan.yml',
+        output: './e2e/output/source'
+      }).run()
+    })
+
+    it('compiles a call using the declared Source attributes', () => {
+      const result = compile(['./e2e/source-examples/valid.ts'])
+      expect(result.diagnostics).toEqual([])
+    })
+
+    it('compiles a call overriding a constant Source attribute', () => {
+      const result = compile(['./e2e/source-examples/overriding-constant.ts'])
+      expect(result.diagnostics).toEqual([])
+    })
+
+    it('borks when a Source attribute is outside its enum', () => {
+      const result = compile(['./e2e/source-examples/invalid-enum.ts'])
+      expect(result.result).toBeFalsy()
+      const message = JSON.stringify(result.diagnostics[0].message)
+      expect(message).toEqual(expect.stringContaining(`'\\"sidebar\\"' is not assignable`))
+      // TypeScript orders union members itself, so check each one separately
+      expect(message).toEqual(expect.stringContaining(`\\"header\\"`))
+      expect(message).toEqual(expect.stringContaining(`\\"footer\\"`))
+    })
+
+    it('borks when a Source attribute is not declared', () => {
+      const result = compile(['./e2e/source-examples/undeclared-attribute.ts'])
+      expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining("'widget' does not exist")
+      )
+    })
+
+    it('borks when a required Source attribute is missing', () => {
+      const result = compile(['./e2e/source-examples/missing-required.ts'])
+      expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining("Property 'campaign' is missing")
       )
     })
   })

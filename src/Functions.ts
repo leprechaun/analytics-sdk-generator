@@ -2,6 +2,7 @@ import ts, {factory } from 'typescript'
 
 import { Screen, Track } from './EventTypes'
 import { ObjectType } from './Types'
+import { ObjectDefinition } from './InputTypes'
 
 type ImportMapping = string[]
 
@@ -12,7 +13,8 @@ type ImportMappings = {
 type ToASTOptions = {
   hasImplementation?: boolean,
   importMappings?: ImportMappings,
-  methodsAsync: boolean
+  methodsAsync: boolean,
+  source?: ObjectDefinition
 }
 
 export class AnalyticsFunction {
@@ -78,7 +80,7 @@ export class AnalyticsFunction {
   }
 
   toAST(options?: ToASTOptions) {
-    const source = this.event.sourceToObjectType()
+    const source = this.event.sourceToObjectType(options.source)
     return this.fn(
       options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
       [

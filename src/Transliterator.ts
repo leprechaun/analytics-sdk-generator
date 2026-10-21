@@ -39,7 +39,8 @@ export default class Transliterator {
     const toASTOptions = {
       importMappings,
       hasImplementation: !!this.options.implementation,
-      methodsAsync: this.options.methodsAsync
+      methodsAsync: this.options.methodsAsync,
+      source: plan.source
     }
 
     this.push(acc, 'shared-definitions', this.sharedEnum('FeatureNames', plan.features.map(f => f.name), "List of all the feature names"))
