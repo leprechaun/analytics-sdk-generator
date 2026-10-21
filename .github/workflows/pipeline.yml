@@ -110,6 +110,6 @@ jobs:
       # Trusted publishing needs a recent npm CLI (>=11.5.1) to do the OIDC
       # token exchange; the version bundled with node:21 predates that.
       - run: npm install -g npm@latest
-      - run: npm pkg set version="0.2.${{ github.run_number }}"
+      - run: npm pkg set version="0.3.${{ github.run_number }}"
       - name: Publish to npm
         run: npm stage publish
