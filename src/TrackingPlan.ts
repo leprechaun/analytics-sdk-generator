@@ -29,7 +29,13 @@ export default class TrackingPlan {
 
   parse(plan) {
     this.parseTracks(plan?.tracks)
-    this.parseViews(plan?.screens, ['screen'])
+    const declaredTwice = Object.keys(plan?.screens ?? {}).filter(key => key in (plan?.views ?? {}))
+    if(declaredTwice.length > 0) {
+      throw new Error(`View declared in both \`screens\` and \`views\`: ${declaredTwice.join(', ')}`)
+    }
+
+    this.parseViews(plan?.screens, () => ['screen'])
+    this.parseViews(plan?.views, view => view.on ?? EventTypes.viewKinds)
     this.parseScreens()
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
@@ -93,9 +99,20 @@ export default class TrackingPlan {
     }
   }
 
-  parseViews(views, on: EventTypes.ViewKind[]) {
+  parseViews(views, kindsOf: (definition) => EventTypes.ViewKind[]) {
     for(const key in views) {
-      this.views.push(new EventTypes.View(key, views[key] ?? {}, on))
+      const definition = views[key] ?? {}
+      const kinds = kindsOf(definition)
+
+      const unknown = kinds.filter(kind => !EventTypes.viewKinds.includes(kind))
+      if(unknown.length > 0) {
+        throw new Error(`Unknown kind in \`on\` for View ${key}: ${unknown.join(', ')}`)
+      }
+      if(kinds.includes('page')) {
+        throw new Error(`Pages are not supported yet: ${key}`)
+      }
+
+      this.views.push(new EventTypes.View(key, definition, kinds))
     }
   }
 

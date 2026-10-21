@@ -25,6 +25,7 @@ export class Feature {
 }
 
 export type ViewKind = "screen" | "page"
+export const viewKinds: ViewKind[] = ["screen", "page"]
 
 // A place the user can be in the product, declared once; it appears as a Screen, a Page, or both
 export class View {
