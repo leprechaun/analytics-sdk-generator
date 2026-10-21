@@ -97,6 +97,14 @@ describe("Compilation tests", () => {
         expect.stringContaining(`'\\"FarmMap\\"' is not assignable to type '\\"Login\\"'`)
       )
     })
+
+    it('borks when a Track on a Page is given a `screen`', () => {
+      const result = compile(['./e2e/page-examples/track-with-screen.ts'])
+      expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining("'screen' does not exist")
+      )
+    })
   })
 
   describe('configured Source attributes', () => {

@@ -159,6 +159,7 @@ export function pageToAST(page: Page, options: ToASTOptions): ts.Node[] {
       undefined,
       undefined,
       new AnalyticsFunction(page).toAST(options)
-    )
+    ),
+    ...page.tracks.flatMap(track => trackToAST(track, options))
   ]
 }

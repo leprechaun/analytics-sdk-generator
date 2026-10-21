@@ -49,6 +49,33 @@ describe('Views', () => {
     })
   })
 
+  describe('Tracks on a Page', () => {
+    const page = () => generate({ tracks, views: { Login: { ...login, on: ['page'] } } })['pages/Login']
+
+    it('are exported from the Page helper file, filling in `page`', () => {
+      expect(page()).toMatch(
+        /export const LoginFailed = [^]*?console\.log\("track", "LoginFailed", props, \{\s*page: "Login",\s*feature: "Onboarding",\s*\.\.\.source\s*\}\)/
+      )
+    })
+
+    it('accept only their own `page`, and an optional `url`, in their Source', () => {
+      expect(sourceParameterOf(page(), 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; page?: "Login"; url?: string; feature?: "Onboarding"; }'
+      )
+    })
+
+    it('are exported from both files when the View appears as both kinds, each with its own View', () => {
+      const files = generate({ tracks, views: { Login: login } })
+
+      expect(sourceParameterOf(files['screens/Login'], 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; screen?: "Login"; feature?: "Onboarding"; }'
+      )
+      expect(sourceParameterOf(files['pages/Login'], 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; page?: "Login"; url?: string; feature?: "Onboarding"; }'
+      )
+    })
+  })
+
   describe('a View without `on:`', () => {
     it('generates both a Screen helper and a Page helper', () => {
       expect(Object.keys(generate({ tracks, views: { Login: login } }))).toEqual(

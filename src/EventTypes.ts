@@ -210,15 +210,35 @@ export class Track extends Event {
   type: "track"
   features: Feature[]
   screens: Screen[]
+  pages: Page[] = []
 
   constructor(definition: TrackDefinition) {
     super({...definition, type: "track"})
+  }
+
+  // A Track fired from a Page names the Page instead of a Screen
+  addViewSourceAttributes(properties: InputTypes.ObjectProperties, required: string[]) {
+    if (this.pages.length === 0) {
+      return super.addViewSourceAttributes(properties, required);
+    }
+
+    properties['page'] = this.toEnumAndRequired(this.pages.map(page => page.name), "PageNames")[1];
+    properties['url'] = { type: 'string' };
   }
 
   toScreenSpecific(screen: Screen) {
     const t = new Track({key: this.key, name: this.name})
     t.features = screen.features
     t.screens = [screen]
+    t.properties = this.properties
+
+    return t
+  }
+
+  toPageSpecific(page: Page) {
+    const t = new Track({key: this.key, name: this.name})
+    t.features = page.features
+    t.pages = [page]
     t.properties = this.properties
 
     return t

@@ -140,6 +140,9 @@ export default class TrackingPlan {
       const page = new EventTypes.Page({...view.definition, key: view.key} as ScreenDefinition)
 
       this.addFeaturesToEvent(view.definition, page)
+      for(const trackName of view.definition.tracks ?? []) {
+        page.tracks.push(this.getTrack(trackName).toPageSpecific(page))
+      }
 
       this.pages.push(page)
     }

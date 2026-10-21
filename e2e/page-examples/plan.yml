@@ -2,6 +2,16 @@ views:
   Login:
     features:
       - Onboarding
+    tracks:
+      - LoginFailed
   FarmMap:
     on:
       - page
+
+tracks:
+  LoginFailed:
+    required:
+      - reason
+    properties:
+      reason:
+        type: string
