@@ -1,7 +1,7 @@
 import TypeMapper from './TypeMapper'
 import * as types from './Types'
 import TrackingPlan from './TrackingPlan'
-import { Feature, Screen, Track } from './EventTypes'
+import { Feature, Screen, Track, View } from './EventTypes'
 
 describe(TrackingPlan, () => {
   const plan = {
@@ -64,6 +64,15 @@ describe(TrackingPlan, () => {
       expect(features.map( f => f.name)).toEqual(
         expect.arrayContaining(['Onboarding', 'Just Onboarding', 'AnotherFeature', 'Special Feature'])
       )
+    })
+  })
+
+  describe(View, () => {
+    it('reads each `screens:` entry as a View appearing only as a Screen', () => {
+      expect(TP.views.map(view => [view.key, view.name, view.on])).toEqual([
+        ['Welcome', 'Welcome Screen', ['screen']],
+        ['AnotherScreen', 'Another Screen', ['screen']]
+      ])
     })
   })
 

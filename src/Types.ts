@@ -277,6 +277,13 @@ export class Constant extends BaseType {
   }
 }
 
+// A type with no values, e.g. the list of Screen names in a plan without Screens
+export class NeverType extends BaseType {
+  toAST() {
+    return factory.createKeywordTypeNode(ts.SyntaxKind.NeverKeyword)
+  }
+}
+
 export class UnionType extends BaseType {
   options: any[]
   constructor(definition: {options: any}) {

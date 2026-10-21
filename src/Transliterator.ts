@@ -2,7 +2,7 @@ import ts, { factory } from 'typescript'
 
 import TrackingPlan from './TrackingPlan'
 import TypeMapper from './TypeMapper'
-import { NamedType } from './Types'
+import { NamedType, NeverType } from './Types'
 import * as functions from './Functions'
 
 export default class Transliterator {
@@ -27,10 +27,11 @@ export default class Transliterator {
   }
 
   private sharedEnum(name: string, values: string[], description: string): ts.Node[] {
-    return new NamedType(name, TypeMapper.toSpecificType({
-      type: 'string',
-      enum: values,
-    }), description).toAST()
+    const type = values.length === 0
+      ? new NeverType({})
+      : TypeMapper.toSpecificType({ type: 'string', enum: values })
+
+    return new NamedType(name, type, description).toAST()
   }
 
   transliterate(plan: TrackingPlan): Map<string, ts.Node[]> {

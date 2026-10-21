@@ -11,10 +11,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "CompanyProfile";
     feature: "Onboarding" | "Account";
 }) => {
     await implementation("screen", "CompanyProfile", props, {
+        screen: "CompanyProfile",
         ...source
     });
 };
@@ -42,10 +43,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "FirstFeatureLanding";
     feature: shared.FeatureNames;
 }) => {
     await implementation("screen", "FirstFeatureLanding", props, {
+        screen: "FirstFeatureLanding",
         ...source
     });
 };
@@ -59,10 +61,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "Login";
     feature?: "Onboarding";
 }) => {
     await implementation("screen", "Login", props, {
+        screen: "Login",
         feature: "Onboarding",
         ...source
     });
@@ -121,10 +124,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "SecondFeatureLanding";
     feature: shared.FeatureNames;
 }) => {
     await implementation("screen", "SecondFeatureLanding", props, {
+        screen: "SecondFeatureLanding",
         ...source
     });
 };
@@ -138,10 +142,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "Splash";
     feature: shared.FeatureNames;
 }) => {
     await implementation("screen", "Splash", props, {
+        screen: "Splash",
         ...source
     });
 };
@@ -155,10 +160,11 @@ export default async (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "UserProfile";
     feature: "Onboarding" | "Account";
 }) => {
     await implementation("screen", "UserProfile", props, {
+        screen: "UserProfile",
         ...source
     });
 };
@@ -186,10 +192,11 @@ export default async (props: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "ValueProposition";
     feature: "Onboarding" | "AnotherFeature";
 }) => {
     await implementation("screen", "ValueProposition", props, {
+        screen: "ValueProposition",
         ...source
     });
 };
@@ -335,10 +342,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "CompanyProfile";
     feature: "Onboarding" | "Account";
 }) => {
     console.log("screen", "CompanyProfile", props, {
+        screen: "CompanyProfile",
         ...source
     })
 };
@@ -365,10 +373,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "FirstFeatureLanding";
     feature: shared.FeatureNames;
 }) => {
     console.log("screen", "FirstFeatureLanding", props, {
+        screen: "FirstFeatureLanding",
         ...source
     })
 };
@@ -381,10 +390,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "Login";
     feature?: "Onboarding";
 }) => {
     console.log("screen", "Login", props, {
+        screen: "Login",
         feature: "Onboarding",
         ...source
     })
@@ -442,10 +452,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "SecondFeatureLanding";
     feature: shared.FeatureNames;
 }) => {
     console.log("screen", "SecondFeatureLanding", props, {
+        screen: "SecondFeatureLanding",
         ...source
     })
 };
@@ -458,10 +469,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "Splash";
     feature: shared.FeatureNames;
 }) => {
     console.log("screen", "Splash", props, {
+        screen: "Splash",
         ...source
     })
 };
@@ -474,10 +486,11 @@ export default (props?: null, source?: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "UserProfile";
     feature: "Onboarding" | "Account";
 }) => {
     console.log("screen", "UserProfile", props, {
+        screen: "UserProfile",
         ...source
     })
 };
@@ -504,10 +517,11 @@ export default (props: {
     widget?: string;
     element?: string;
     action?: string;
-    screen: shared.ScreenNames;
+    screen?: "ValueProposition";
     feature: "Onboarding" | "AnotherFeature";
 }) => {
     console.log("screen", "ValueProposition", props, {
+        screen: "ValueProposition",
         ...source
     })
 };

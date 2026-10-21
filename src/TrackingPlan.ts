@@ -9,6 +9,7 @@ import {
 
 export default class TrackingPlan {
   features: EventTypes.Feature[]
+  views: EventTypes.View[]
   screens: EventTypes.Screen[]
   tracks: EventTypes.Track[]
   defs: NamedType[]
@@ -17,6 +18,7 @@ export default class TrackingPlan {
 
   constructor(plan: any) {
     this.features = []
+    this.views = []
     this.screens = []
     this.tracks = []
     this.defs = []
@@ -27,7 +29,8 @@ export default class TrackingPlan {
 
   parse(plan) {
     this.parseTracks(plan?.tracks)
-    this.parseScreens(plan?.screens)
+    this.parseViews(plan?.screens, ['screen'])
+    this.parseScreens()
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
     this.parseSource(plan?.source)
@@ -68,7 +71,7 @@ export default class TrackingPlan {
     }
   }
 
-  addFeaturesToEvent(definition: EventDefinition, event: EventTypes.Screen | EventTypes.Track) {
+  addFeaturesToEvent(definition: Omit<EventDefinition, 'type'>, event: EventTypes.Screen | EventTypes.Track) {
     definition.features?.forEach(featureName => {
       const feature = this.getOrCreateFeature(featureName)
       if (event instanceof EventTypes.Screen) {
@@ -80,7 +83,7 @@ export default class TrackingPlan {
     })
   }
 
-  addTracksToScreen(definition: EventDefinition, screen: EventTypes.Screen) {
+  addTracksToScreen(definition: ScreenDefinition, screen: EventTypes.Screen) {
     if('tracks' in definition && Array.isArray(definition['tracks'])) {
       for(const trackName of definition['tracks']) {
         const t = this.getTrack(trackName)
@@ -90,19 +93,25 @@ export default class TrackingPlan {
     }
   }
 
-  parseScreen(screens, key: string) {
-    const screen = new EventTypes.Screen({...screens[key], key} as ScreenDefinition)
+  parseViews(views, on: EventTypes.ViewKind[]) {
+    for(const key in views) {
+      this.views.push(new EventTypes.View(key, views[key] ?? {}, on))
+    }
+  }
 
-    this.addFeaturesToEvent(screens[key], screen)
-    this.addTracksToScreen(screens[key], screen)
+  parseScreen(view: EventTypes.View) {
+    const screen = new EventTypes.Screen({...view.definition, key: view.key} as ScreenDefinition)
+
+    this.addFeaturesToEvent(view.definition, screen)
+    this.addTracksToScreen(view.definition, screen)
 
     return screen
   }
 
-  parseScreens(screens) {
-    for(const key in screens) {
+  parseScreens() {
+    for(const view of this.views.filter(v => v.on.includes('screen'))) {
       this.screens.push(
-        this.parseScreen(screens, key)
+        this.parseScreen(view)
       )
     }
   }

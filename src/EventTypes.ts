@@ -24,6 +24,23 @@ export class Feature {
   }
 }
 
+export type ViewKind = "screen" | "page"
+
+// A place the user can be in the product, declared once; it appears as a Screen, a Page, or both
+export class View {
+  key: string
+  name: string
+  on: ViewKind[]
+  definition: ScreenDefinition
+
+  constructor(key: string, definition: ScreenDefinition, on: ViewKind[]) {
+    this.key = key
+    this.name = definition.name || key
+    this.on = on
+    this.definition = definition
+  }
+}
+
 export type EventType  = "screen" | "track"
 
 export class Event {
@@ -156,6 +173,14 @@ export class Screen extends Event {
 
   constructor(definition: ScreenDefinition) {
     super({...definition, type: "screen"})
+  }
+
+  // A Screen view always originates from the Screen itself
+  uniqueFeaturesAndScreens() {
+    return {
+      ...super.uniqueFeaturesAndScreens(),
+      screens: [this.name]
+    }
   }
 }
 

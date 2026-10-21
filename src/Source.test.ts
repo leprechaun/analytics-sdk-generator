@@ -62,7 +62,39 @@ describe('Source attributes', () => {
       }
 
       expect(sourceParameterOf(generate(withRef)['screens/Home'], 'default')).toEqual(
-        '{ campaign?: shared.Campaign; screen: shared.ScreenNames; feature?: "Onboarding"; }'
+        '{ campaign?: shared.Campaign; screen?: "Home"; feature?: "Onboarding"; }'
+      )
+    })
+  })
+
+  describe('a Tracking Plan without Screens or Features', () => {
+    const plan = { tracks: { SomeTrack: {} } }
+
+    it('generates empty name lists as `never`', () => {
+      const sharedDefinitions = generate(plan)['shared-definitions']
+
+      expect(sharedDefinitions).toContain('export type ScreenNames = never;')
+      expect(sharedDefinitions).toContain('export type FeatureNames = never;')
+    })
+  })
+
+  describe('a Screen view', () => {
+    const plan = {
+      screens: {
+        Home: { features: ['Onboarding'] },
+        Settings: {}
+      }
+    }
+
+    it('fills in its own `screen`', () => {
+      expect(generate(plan)['screens/Home']).toMatch(
+        /console\.log\("screen", "Home", props, \{\s*screen: "Home",\s*feature: "Onboarding",\s*\.\.\.source\s*\}\)/
+      )
+    })
+
+    it('only accepts its own `screen`, and makes it optional', () => {
+      expect(sourceParameterOf(generate(plan)['screens/Home'], 'default')).toEqual(
+        '{ widget?: string; element?: string; action?: string; screen?: "Home"; feature?: "Onboarding"; }'
       )
     })
   })
