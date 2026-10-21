@@ -1,4 +1,4 @@
-import yargs from 'yargs'
+import { Argv } from 'yargs'
 
 import TransliterateCommand from '../../commands/TransliterateCommand'
 
@@ -6,7 +6,7 @@ const module = {
   usage: 'transliterate -i ./human-readable.yml -o ./output',
   command: 'transliterate [-i <input>] [-o <output>] [--implementation <implementation>]',
   describe: 'transliterate an analytics descriptor file',
-  builder: function () {
+  builder: function (yargs: Argv) {
     return yargs
       .describe('input', 'Schema file')
       .describe('implementation', "function file that gets called")
