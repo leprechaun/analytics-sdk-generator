@@ -3,6 +3,7 @@
     "esModuleInterop": true,
     "noImplicitAny": false,
     "noEmitOnError": true,
+    "skipLibCheck": true,
     "removeComments": false,
     "sourceMap": true,
     "target": "es5",
