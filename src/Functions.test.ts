@@ -4,6 +4,9 @@ import * as EventTypes from './EventTypes'
 import * as InputTypes from './InputTypes'
 import * as Types from './Types'
 import TypeMapper from './TypeMapper'
+import { Sources } from './Source'
+
+const sources = new Sources(undefined, { screens: [], pages: [], features: [] })
 
 const print = (nodelist: any[]) => {
   const nodes = factory.createNodeArray(nodelist)
@@ -48,16 +51,12 @@ describe(functions.AnalyticsFunction, () => {
   let trackProps
   let trackPropsToAST
   let trackSource
-  let trackSourceToAST
-  let sourceToPartialLiteralAST
   let fn: functions.AnalyticsFunction
   let ast: any
 
   let spyTrackPropsToAST
-  let spySourceToObjectType
-  let spyTrackSourceToPartialLiteralAST
+  let spySourcesOf
 
-  let partialLiteralAST
 
   beforeEach( () => {
     track = new EventTypes.Track({
@@ -70,34 +69,30 @@ describe(functions.AnalyticsFunction, () => {
       defaultPropsCall as InputTypes.ObjectDefinition
     ).toAST({})
 
-    trackSource = (TypeMapper.toSpecificType(
-      {
-        type: 'object',
-        properties: {
-          lolsource: {
-            type: 'string'
-          }
+    const trackSourceDefinition = {
+      type: 'object',
+      properties: {
+        lolsource: {
+          type: 'string'
         }
-      } as InputTypes.ObjectDefinition
-    )) as Types.ObjectType
+      }
+    } as InputTypes.ObjectDefinition
 
-    partialLiteralAST = trackSource.toPartialLiteralAST()
+    trackSource = TypeMapper.toSpecificType({ ...trackSourceDefinition }) as Types.ObjectType
 
     spyTrackPropsToAST = jest.spyOn(track.properties, 'toAST')
     spyTrackPropsToAST.mockReturnValueOnce(trackProps)
 
-    spySourceToObjectType = jest.spyOn(track, 'sourceToObjectType')
-    spySourceToObjectType.mockReturnValue(trackSource)
-
-    spyTrackSourceToPartialLiteralAST = jest.spyOn(trackSource, 'toPartialLiteralAST')
-    spyTrackSourceToPartialLiteralAST.mockReturnValueOnce(partialLiteralAST)
+    spySourcesOf = jest.spyOn(sources, 'of')
+    spySourcesOf.mockReturnValue({ type: trackSourceDefinition, filledIn: {} })
 
     fn = new functions.AnalyticsFunction(track)
-    ast = fn.toAST({hasImplementation: false, methodsAsync: true})
+    ast = fn.toAST({sources, hasImplementation: false, methodsAsync: true})
   })
 
   afterEach( () => {
     (track.properties.toAST as any).mockReset()
+    spySourcesOf.mockRestore()
   })
 
   it('returns an arrow function', () => {
@@ -106,12 +101,12 @@ describe(functions.AnalyticsFunction, () => {
 
   describe('async/await', () => {
     it('gets marked as async when `methodsAsync=true', () => {
-      ast = fn.toAST({hasImplementation: false, methodsAsync: true})
+      ast = fn.toAST({sources, hasImplementation: false, methodsAsync: true})
       expect(ast.modifiers[0].kind).toEqual(ts.SyntaxKind.AsyncKeyword)
     })
 
     it('gets marked as sync when `methodsAsync=false`', () => {
-      ast = fn.toAST({hasImplementation: false, methodsAsync: false})
+      ast = fn.toAST({sources, hasImplementation: false, methodsAsync: false})
       expect(ast.modifiers).toBeUndefined()
     })
   })
@@ -152,8 +147,8 @@ describe(functions.AnalyticsFunction, () => {
         expect(sourceParameter.questionToken).not.toBeUndefined()
       })
 
-      it('calls track.sourceToObjectType', () => {
-        expect(track.sourceToObjectType).toHaveBeenCalled()
+      it("asks the Tracking Plan's Sources for the Source of the Event's Views", () => {
+        expect(sources.of).toHaveBeenCalledWith(track.eventViews())
       })
 
       it('sets whatever that returns to the props parameter', () => {
@@ -191,7 +186,7 @@ describe(functions.AnalyticsFunction, () => {
 
     describe('w/ implementation', () => {
       beforeEach( () => {
-        ast = fn.toAST({hasImplementation: true, methodsAsync: true})
+        ast = fn.toAST({sources, hasImplementation: true, methodsAsync: true})
       })
 
       it('calls implementation', () => {
@@ -231,7 +226,7 @@ describe(functions.AnalyticsFunction, () => {
           properties
         } as InputTypes.TrackDefinition)
 
-        ast = new functions.AnalyticsFunction(screen).toAST({hasImplementation: true, methodsAsync: true})
+        ast = new functions.AnalyticsFunction(screen).toAST({sources, hasImplementation: true, methodsAsync: true})
       })
 
       describe('parameters', () => {
@@ -249,7 +244,7 @@ describe("screenToAST", () => {
       key: "SomeScreen",
       name: "Some Screen"
     })
-    const ast = functions.screenToAST(screen, {methodsAsync: true})
+    const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
     const main = ast[0]
 
     it('just has one statement', () => {
@@ -267,7 +262,7 @@ describe("screenToAST", () => {
         name: "Some Screen",
         description: "blah blah"
       })
-      const ast = functions.screenToAST(screen, {methodsAsync: true})
+      const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
       const comment = ast[0]
       const main = ast[1]
 
@@ -295,7 +290,7 @@ describe("screenToAST", () => {
     screen.tracks.push(new EventTypes.Track({ key: "sometrack" }))
     screen.tracks.push(new EventTypes.Track({ key: "anothertrack" }))
 
-    const ast = functions.screenToAST(screen, {methodsAsync: true})
+    const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
     const main = ast[0]
 
     it('has one statement for each', () => {
@@ -331,7 +326,7 @@ describe("trackToAST", () => {
     description: "hello world"
   })
 
-  const ast = functions.trackToAST(track, {methodsAsync: true})
+  const ast = functions.trackToAST(track, {sources, methodsAsync: true})
   const comment = ast[0]
   const main = ast[1]
 
@@ -348,6 +343,6 @@ describe("trackToAST", () => {
   })
 
   it('should use AnalyticsFunction', () => {
-    expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({methodsAsync: true}))
+    expect(declaration.initializer).toEqual(new functions.AnalyticsFunction(track).toAST({sources, methodsAsync: true}))
   })
 })

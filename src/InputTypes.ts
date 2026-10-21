@@ -97,7 +97,12 @@ export type AnySimpleDefinition = EnumeratedSimpleDefinition | NonEnumeratedSimp
 
 export type AliasDefinition = UnionDefinition | ReferenceDefinition
 
-export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDefinition
+// JSON Schema's "no value is valid"
+export type NeverDefinition = {
+  not: Record<string, never>
+} & Describable
+
+export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDefinition | NeverDefinition
 
 export type EventDefinition = {
   key: string

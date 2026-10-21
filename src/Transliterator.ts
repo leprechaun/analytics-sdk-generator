@@ -41,7 +41,7 @@ export default class Transliterator {
       importMappings,
       hasImplementation: !!this.options.implementation,
       methodsAsync: this.options.methodsAsync,
-      source: plan.source
+      sources: plan.sources
     }
 
     this.push(acc, 'shared-definitions', this.sharedEnum('FeatureNames', plan.features.map(f => f.name), "List of all the feature names"))

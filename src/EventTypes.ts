@@ -1,8 +1,7 @@
 import TypeMapper from './TypeMapper'
-import * as InputTypes from './InputTypes'
 import { EventDefinition, TrackDefinition, ScreenDefinition, ObjectDefinition } from './InputTypes'
-import { Constant, ObjectType } from './Types'
-import { defaultSourceDefinition } from './Source'
+import { ObjectType } from './Types'
+import { EventViews } from './Source'
 
 export class Feature {
   name: string
@@ -98,81 +97,6 @@ export class Event {
   escapeKey() {
     return this.key.replace(/[ &]/g, match => match === ' ' ? '' : 'n');
   }
-
-  uniqueFeaturesAndScreens() {
-    const featureNames = new Set([
-      ...(this.screens || []).flatMap(screen => screen.features.map(f => f.name)),
-      ...(this.features || []).map(f => f.name)
-    ]);
-
-    const screenNames = new Set(
-      (this.screens || []).map(screen => screen.name)
-    );
-
-    return {
-      features: Array.from(featureNames),
-      screens: Array.from(screenNames)
-    }
-  }
-
-  toEnumAndRequired(options: string[], fallback: string, useFallback = false): [boolean, {type: 'string', enum: string[]} |  {$ref: string} ] {
-    let required = true
-    let type: {type: 'string', enum: string[]} | { $ref: string }
-
-    if(options.length > 0 && !useFallback ) {
-      type = {
-        type: 'string',
-        enum: options
-      }
-
-      if(options.length == 1) {
-        required = false
-      }
-    } else {
-      type = {
-        $ref: `#/$defs/${fallback}`
-      }
-    }
-
-    return [required, type]
-  }
-
-  // The Source attributes naming the View an Event originated from
-  addViewSourceAttributes(properties: InputTypes.ObjectProperties, required: string[]) {
-    const [screenRequired, screenType] = this.toEnumAndRequired(this.uniqueFeaturesAndScreens().screens, "ScreenNames");
-    properties['screen'] = screenType;
-    if (screenRequired) required.push('screen');
-  }
-
-  sourceToObjectType(source: ObjectDefinition = defaultSourceDefinition) {
-    const screensAndFeatures = this.uniqueFeaturesAndScreens();
-
-    const properties = { ...source.properties };
-
-    const required = [...(source.required ?? [])];
-
-    this.addViewSourceAttributes(properties, required);
-
-    const [featureRequired, featureType] = this.toEnumAndRequired(screensAndFeatures.features, "FeatureNames");
-    properties['feature'] = featureType;
-    if (featureRequired) required.push('feature');
-
-    const objectType = new ObjectType({
-      type: 'object',
-      properties,
-      required
-    } as InputTypes.ObjectDefinition);
-
-    // Constants declared in the Tracking Plan's Source are defaults the caller may override
-    for (const property of objectType.properties) {
-      if (property.name in source.properties && property.type instanceof Constant) {
-        property.type.overridable = true;
-        property.required = false;
-      }
-    }
-
-    return objectType;
-  }
 }
 
 export class Screen extends Event {
@@ -183,12 +107,9 @@ export class Screen extends Event {
     super({...definition, type: "screen"})
   }
 
-  // A Screen view always originates from the Screen itself
-  uniqueFeaturesAndScreens() {
-    return {
-      ...super.uniqueFeaturesAndScreens(),
-      screens: [this.name]
-    }
+  // A Screen view is always fired from the Screen itself
+  eventViews(): EventViews {
+    return { screens: [this.name], pages: [], features: this.features.map(f => f.name) }
   }
 }
 
@@ -199,10 +120,9 @@ export class Page extends Event {
     super({...definition, type: "page"})
   }
 
-  // A Page view always originates from the Page itself, at a URL the implementation can fill in
-  addViewSourceAttributes(properties: InputTypes.ObjectProperties) {
-    properties['page'] = this.toEnumAndRequired([this.name], "PageNames")[1];
-    properties['url'] = { type: 'string' };
+  // A Page view is always fired from the Page itself
+  eventViews(): EventViews {
+    return { screens: [], pages: [this.name], features: this.features.map(f => f.name) }
   }
 }
 
@@ -216,14 +136,17 @@ export class Track extends Event {
     super({...definition, type: "track"})
   }
 
-  // A Track fired from a Page names the Page instead of a Screen
-  addViewSourceAttributes(properties: InputTypes.ObjectProperties, required: string[]) {
-    if (this.pages.length === 0) {
-      return super.addViewSourceAttributes(properties, required);
+  // The Screens and Pages it is attached to, and every Feature it or they belong to
+  eventViews(): EventViews {
+    return {
+      screens: this.screens.map(screen => screen.name),
+      pages: this.pages.map(page => page.name),
+      features: Array.from(new Set([
+        ...this.features,
+        ...this.screens.flatMap(screen => screen.features),
+        ...this.pages.flatMap(page => page.features)
+      ].map(feature => feature.name)))
     }
-
-    properties['page'] = this.toEnumAndRequired(this.pages.map(page => page.name), "PageNames")[1];
-    properties['url'] = { type: 'string' };
   }
 
   toScreenSpecific(screen: Screen) {

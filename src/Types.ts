@@ -245,8 +245,6 @@ export class TypeReference extends BaseType {
 export class Constant extends BaseType {
   value: any
   type: BaseType
-  // An overridable constant is a default: it is typed as its underlying type, so callers can replace it
-  overridable = false
 
   constructor(value: any) {
     super({})
@@ -266,11 +264,7 @@ export class Constant extends BaseType {
     return (this.type).toPartialLiteralAST(this.value)
   }
 
-  toAST(options?: ToASTOptions): ts.TypeNode {
-    if(this.overridable) {
-      return this.type.toAST(options) as ts.TypeNode
-    }
-
+  toAST(): ts.LiteralTypeNode {
     return factory.createLiteralTypeNode(
       this.type.toPartialLiteralAST(this.value)
     )

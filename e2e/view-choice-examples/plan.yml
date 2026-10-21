@@ -1,0 +1,17 @@
+screens:
+  Splash:
+    tracks:
+      - AppOpened
+
+views:
+  Login:
+    tracks:
+      - LoginFailed
+  FarmMap:
+    on:
+      - page
+
+tracks:
+  AppOpened: {}
+  LoginFailed: {}
+  Logout: {}

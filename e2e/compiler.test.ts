@@ -107,6 +107,39 @@ describe("Compilation tests", () => {
     })
   })
 
+  describe('Tracks not tied to one View', () => {
+    beforeAll(() => {
+      new TransliterateCommand({
+        schema_path: './e2e/view-choice-examples/plan.yml',
+        output: './e2e/output/view-choice'
+      }).run()
+      new TransliterateCommand({
+        schema_path: './e2e/no-view-examples/plan.yml',
+        output: './e2e/output/no-view'
+      }).run()
+    })
+
+    it('compiles a call naming either a Screen or a Page', () => {
+      const result = compile(['./e2e/view-choice-examples/valid.ts'])
+      expect(result.diagnostics).toEqual([])
+    })
+
+    it('borks when a call names both a Screen and a Page', () => {
+      const result = compile(['./e2e/view-choice-examples/both-views.ts'])
+      expect(result.result).toBeFalsy()
+    })
+
+    it('borks when a call on a View of both kinds names neither', () => {
+      const result = compile(['./e2e/view-choice-examples/no-view.ts'])
+      expect(result.result).toBeFalsy()
+    })
+
+    it('compiles a call without a View when the plan has no Views', () => {
+      const result = compile(['./e2e/no-view-examples/valid.ts'])
+      expect(result.diagnostics).toEqual([])
+    })
+  })
+
   describe('configured Source attributes', () => {
     beforeAll(() => {
       new TransliterateCommand({

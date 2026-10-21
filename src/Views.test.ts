@@ -76,6 +76,22 @@ describe('Views', () => {
     })
   })
 
+  describe('Tracks not tied to one View', () => {
+    const tracksFile = () => generate({
+      tracks: { AppOpened: {}, LoginFailed: {} },
+      screens: { Splash: { tracks: ['AppOpened'] } },
+      views: { Login: { tracks: ['LoginFailed'] } }
+    })['tracks']
+
+    it('still fill in the Screen of a Track on exactly one Screen-only View', () => {
+      expect(tracksFile()).toMatch(/console\.log\("track", "AppOpened", props, \{\s*screen: "Splash",\s*\.\.\.source\s*\}\)/)
+    })
+
+    it('fill in no View for a Track on a View of both kinds, leaving the caller to choose', () => {
+      expect(tracksFile()).toMatch(/console\.log\("track", "LoginFailed", props, \{\s*\.\.\.source\s*\}\)/)
+    })
+  })
+
   describe('a View without `on:`', () => {
     it('generates both a Screen helper and a Page helper', () => {
       expect(Object.keys(generate({ tracks, views: { Login: login } }))).toEqual(

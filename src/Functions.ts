@@ -1,8 +1,9 @@
 import ts, {factory } from 'typescript'
 
 import { Page, Screen, Track } from './EventTypes'
-import { ObjectType } from './Types'
-import { ObjectDefinition } from './InputTypes'
+import { BaseType, ObjectType } from './Types'
+import { Sources, SourceSchema } from './Source'
+import TypeMapper from './TypeMapper'
 
 type ImportMapping = string[]
 
@@ -14,7 +15,7 @@ type ToASTOptions = {
   hasImplementation?: boolean,
   importMappings?: ImportMappings,
   methodsAsync: boolean,
-  source?: ObjectDefinition
+  sources: Sources
 }
 
 export class AnalyticsFunction {
@@ -41,23 +42,37 @@ export class AnalyticsFunction {
       : this.parameter("props", properties.toAST(options), false)
   }
 
-  sourceParameter(source: ObjectType, options?: ToASTOptions) {
-    const sourceType = source.toAST(options)
+  sourceParameter(source: BaseType, options?: ToASTOptions) {
+    const sourceType = source.toAST(options) as ts.TypeNode
     return this.parameter(
       "source",
       ts.isTypeLiteralNode(sourceType)
         ? factory.createTypeLiteralNode(sourceType.members)
-        : factory.createTypeLiteralNode([]),
+        : sourceType as ts.TypeNode,
       true
     )
   }
 
-  implementation(options: ToASTOptions, source: ObjectType) {
+  // The values filled in for the caller, overridden by their own Source
+  filledInSource(filledIn: SourceSchema['filledIn']) {
+    return factory.createObjectLiteralExpression(
+      [
+        ...Object.entries(filledIn).map(([name, value]) => factory.createPropertyAssignment(
+          factory.createIdentifier(name),
+          typeof value === 'number' ? factory.createNumericLiteral(value) : factory.createStringLiteral(value)
+        )),
+        factory.createSpreadAssignment(factory.createIdentifier("source"))
+      ],
+      true
+    )
+  }
+
+  implementation(options: ToASTOptions, sourceLiteral: ts.Expression) {
     const params = [
       factory.createStringLiteral(this.event.type),
       factory.createStringLiteral(this.event.name),
       factory.createIdentifier("props"),
-      source.toPartialLiteralAST("source")
+      sourceLiteral
     ]
 
     return options.hasImplementation
@@ -80,15 +95,21 @@ export class AnalyticsFunction {
   }
 
   toAST(options?: ToASTOptions) {
-    const source = this.event.sourceToObjectType(options.source)
+    const [source, sourceLiteral] = this.sourceOf(options)
     return this.fn(
       options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
       [
         this.propsParameter(this.event.properties, options),
         this.sourceParameter(source, options),
       ],
-      this.implementation(options, source)
+      this.implementation(options, sourceLiteral)
     )
+  }
+
+  // The Source type the helper accepts, and the literal it passes on
+  sourceOf(options: ToASTOptions): [BaseType, ts.Expression] {
+    const schema = options.sources.of(this.event.eventViews())
+    return [TypeMapper.toSpecificType(schema.type), this.filledInSource(schema.filledIn)]
   }
 
   specifiedImplementation(options: ToASTOptions, params: ts.Expression[]) {

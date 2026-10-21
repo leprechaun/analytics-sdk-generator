@@ -23,14 +23,6 @@ describe('Source attributes', () => {
       )
     })
 
-    it('makes Source attributes listed in `required` required', () => {
-      const withRequired = { ...plan, source: { ...plan.source, required: ['campaign'] } }
-
-      expect(sourceParameterOf(generate(withRequired)['tracks'], 'SomeTrack')).toEqual(
-        '{ campaign: string; screen: shared.ScreenNames; feature: shared.FeatureNames; }'
-      )
-    })
-
     it('resolves a `$ref` to `$defs` in Screen helpers', () => {
       const withRef = {
         ...plan,
@@ -69,11 +61,6 @@ describe('Source attributes', () => {
       )
     })
 
-    it('only accepts its own `screen`, and makes it optional', () => {
-      expect(sourceParameterOf(generate(plan)['screens/Home'], 'default')).toEqual(
-        '{ widget?: string; element?: string; action?: string; screen?: "Home"; feature?: "Onboarding"; }'
-      )
-    })
   })
 
   describe('constant Source attributes', () => {
@@ -98,23 +85,10 @@ describe('Source attributes', () => {
       )
     })
 
-    it('is optional, even when listed in `required`, and accepts any value of its type', () => {
-      expect(sourceParameterOf(generate(plan)['tracks'], 'SomeTrack')).toEqual(
-        '{ platform?: string; screen: shared.ScreenNames; feature: shared.FeatureNames; }'
-      )
-    })
   })
 
   describe('reserved Source attributes', () => {
-    it.each(['screen', 'feature', 'page', 'url'])('rejects a `source:` block declaring `%s`', name => {
-      const plan = { source: { properties: { [name]: { type: 'string' } } } }
-
-      expect(() => new TrackingPlan(plan)).toThrow(
-        `Reserved Source attributes cannot be declared in \`source\`: ${name}`
-      )
-    })
-
-    it('names every reserved Source attribute declared', () => {
+    it('make the Tracking Plan fail to load, naming each', () => {
       const plan = {
         source: {
           properties: {
