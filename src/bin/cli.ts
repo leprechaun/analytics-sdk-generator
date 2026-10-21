@@ -11,4 +11,4 @@ yargs(process.argv.slice(2))
   .command(transliterate)
   .demandCommand()
   .help()
-  .argv;
+  .parse();
