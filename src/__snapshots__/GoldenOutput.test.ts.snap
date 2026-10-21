@@ -221,6 +221,12 @@ export type FeatureNames = "Onboarding" | "AnotherFeature" | "Account";
 /**
  * List of all the screen names */
 export type ScreenNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
+/**
+ * List of all the page names */
+export type PageNames = never;
+/**
+ * List of all the view names */
+export type ViewNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
 export type Sector = "Retail" | "IT" | "F&B";
 export type login_provider = "auth0" | "facebook" | "apple";
 ",
@@ -546,6 +552,12 @@ export type FeatureNames = "Onboarding" | "AnotherFeature" | "Account";
 /**
  * List of all the screen names */
 export type ScreenNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
+/**
+ * List of all the page names */
+export type PageNames = never;
+/**
+ * List of all the view names */
+export type ViewNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
 export type Sector = "Retail" | "IT" | "F&B";
 export type login_provider = "auth0" | "facebook" | "apple";
 ",

@@ -7,11 +7,13 @@ import { defaultSourceDefinition } from './Source'
 export class Feature {
   name: string
   screens: Screen[]
+  pages: Page[]
   tracks: Track[]
 
   constructor(name: string, screens: Screen[] = [], tracks: Track[] = []) {
     this.name = name;
     this.screens = screens;
+    this.pages = [];
     this.tracks = tracks;
   }
 
@@ -42,7 +44,7 @@ export class View {
   }
 }
 
-export type EventType  = "screen" | "track"
+export type EventType  = "screen" | "page" | "track"
 
 export class Event {
   type: EventType
@@ -135,6 +137,13 @@ export class Event {
     return [required, type]
   }
 
+  // The Source attributes naming the View an Event originated from
+  addViewSourceAttributes(properties: InputTypes.ObjectProperties, required: string[]) {
+    const [screenRequired, screenType] = this.toEnumAndRequired(this.uniqueFeaturesAndScreens().screens, "ScreenNames");
+    properties['screen'] = screenType;
+    if (screenRequired) required.push('screen');
+  }
+
   sourceToObjectType(source: ObjectDefinition = defaultSourceDefinition) {
     const screensAndFeatures = this.uniqueFeaturesAndScreens();
 
@@ -142,9 +151,7 @@ export class Event {
 
     const required = [...(source.required ?? [])];
 
-    const [screenRequired, screenType] = this.toEnumAndRequired(screensAndFeatures.screens, "ScreenNames");
-    properties['screen'] = screenType;
-    if (screenRequired) required.push('screen');
+    this.addViewSourceAttributes(properties, required);
 
     const [featureRequired, featureType] = this.toEnumAndRequired(screensAndFeatures.features, "FeatureNames");
     properties['feature'] = featureType;
@@ -182,6 +189,20 @@ export class Screen extends Event {
       ...super.uniqueFeaturesAndScreens(),
       screens: [this.name]
     }
+  }
+}
+
+export class Page extends Event {
+  type: "page"
+
+  constructor(definition: ScreenDefinition) {
+    super({...definition, type: "page"})
+  }
+
+  // A Page view always originates from the Page itself, at a URL the implementation can fill in
+  addViewSourceAttributes(properties: InputTypes.ObjectProperties) {
+    properties['page'] = this.toEnumAndRequired([this.name], "PageNames")[1];
+    properties['url'] = { type: 'string' };
   }
 }
 

@@ -11,6 +11,7 @@ export default class TrackingPlan {
   features: EventTypes.Feature[]
   views: EventTypes.View[]
   screens: EventTypes.Screen[]
+  pages: EventTypes.Page[]
   tracks: EventTypes.Track[]
   defs: NamedType[]
   traits: NamedType[]
@@ -20,6 +21,7 @@ export default class TrackingPlan {
     this.features = []
     this.views = []
     this.screens = []
+    this.pages = []
     this.tracks = []
     this.defs = []
     this.traits = []
@@ -37,6 +39,7 @@ export default class TrackingPlan {
     this.parseViews(plan?.screens, () => ['screen'])
     this.parseViews(plan?.views, view => view.on ?? EventTypes.viewKinds)
     this.parseScreens()
+    this.parsePages()
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
     this.parseSource(plan?.source)
@@ -77,11 +80,13 @@ export default class TrackingPlan {
     }
   }
 
-  addFeaturesToEvent(definition: Omit<EventDefinition, 'type'>, event: EventTypes.Screen | EventTypes.Track) {
+  addFeaturesToEvent(definition: Omit<EventDefinition, 'type'>, event: EventTypes.Screen | EventTypes.Page | EventTypes.Track) {
     definition.features?.forEach(featureName => {
       const feature = this.getOrCreateFeature(featureName)
       if (event instanceof EventTypes.Screen) {
         feature.screens.push(event)
+      } else if (event instanceof EventTypes.Page) {
+        feature.pages.push(event)
       } else {
         feature.tracks.push(event)
       }
@@ -108,9 +113,6 @@ export default class TrackingPlan {
       if(unknown.length > 0) {
         throw new Error(`Unknown kind in \`on\` for View ${key}: ${unknown.join(', ')}`)
       }
-      if(kinds.includes('page')) {
-        throw new Error(`Pages are not supported yet: ${key}`)
-      }
 
       this.views.push(new EventTypes.View(key, definition, kinds))
     }
@@ -130,6 +132,16 @@ export default class TrackingPlan {
       this.screens.push(
         this.parseScreen(view)
       )
+    }
+  }
+
+  parsePages() {
+    for(const view of this.views.filter(v => v.on.includes('page'))) {
+      const page = new EventTypes.Page({...view.definition, key: view.key} as ScreenDefinition)
+
+      this.addFeaturesToEvent(view.definition, page)
+
+      this.pages.push(page)
     }
   }
 

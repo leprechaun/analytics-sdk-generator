@@ -46,6 +46,8 @@ export default class Transliterator {
 
     this.push(acc, 'shared-definitions', this.sharedEnum('FeatureNames', plan.features.map(f => f.name), "List of all the feature names"))
     this.push(acc, 'shared-definitions', this.sharedEnum('ScreenNames', plan.screens.map(f => f.name), "List of all the screen names"))
+    this.push(acc, 'shared-definitions', this.sharedEnum('PageNames', plan.pages.map(p => p.name), "List of all the page names"))
+    this.push(acc, 'shared-definitions', this.sharedEnum('ViewNames', plan.views.map(v => v.name), "List of all the view names"))
     for (const def of plan.defs) {
       this.push(acc, 'shared-definitions', def.toAST({}))
     }
@@ -67,6 +69,16 @@ export default class Transliterator {
       }
       this.push(acc, key, this.reExportSharedDefs('../shared-definitions'))
       this.push(acc, key, functions.screenToAST(screen, toASTOptions))
+    }
+
+    for (const page of plan.pages) {
+      const key = `pages/${page.escapeKey()}`
+      this.push(acc, key, this.sharedDefsImport('../shared-definitions'))
+      if (this.options.implementation) {
+        this.push(acc, key, this.importImplementation('../' + this.options.implementation))
+      }
+      this.push(acc, key, this.reExportSharedDefs('../shared-definitions'))
+      this.push(acc, key, functions.pageToAST(page, toASTOptions))
     }
 
     this.push(acc, 'shared-traits', this.sharedDefsImport('./shared-definitions'))

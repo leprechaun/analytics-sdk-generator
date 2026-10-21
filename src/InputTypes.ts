@@ -102,7 +102,7 @@ export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDef
 export type EventDefinition = {
   key: string
   name?: string
-  type: "screen" | "track"
+  type: "screen" | "page" | "track"
   features?: string[]
   description?: string
   additionalProperties?: boolean

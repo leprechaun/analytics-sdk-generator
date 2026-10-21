@@ -1,6 +1,6 @@
 import ts, {factory } from 'typescript'
 
-import { Screen, Track } from './EventTypes'
+import { Page, Screen, Track } from './EventTypes'
 import { ObjectType } from './Types'
 import { ObjectDefinition } from './InputTypes'
 
@@ -18,9 +18,9 @@ type ToASTOptions = {
 }
 
 export class AnalyticsFunction {
-  event: Track | Screen
+  event: Track | Screen | Page
 
-  constructor(definition: Track | Screen) {
+  constructor(definition: Track | Screen | Page) {
     this.event = definition
   }
 
@@ -117,7 +117,7 @@ export class AnalyticsFunction {
   }
 }
 
-function comment(event: Screen | Track): ts.Node[] {
+function comment(event: Screen | Page | Track): ts.Node[] {
   return event.description ? [factory.createJSDocComment(event.description)] : []
 }
 
@@ -149,5 +149,16 @@ export function screenToAST(screen: Screen, options: ToASTOptions): ts.Node[] {
       new AnalyticsFunction(screen).toAST(options)
     ),
     ...screen.tracks.flatMap(track => trackToAST(track, options))
+  ]
+}
+
+export function pageToAST(page: Page, options: ToASTOptions): ts.Node[] {
+  return [
+    ...comment(page),
+    factory.createExportAssignment(
+      undefined,
+      undefined,
+      new AnalyticsFunction(page).toAST(options)
+    )
   ]
 }

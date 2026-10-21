@@ -77,6 +77,28 @@ describe("Compilation tests", () => {
     })
   })
 
+  describe('Pages', () => {
+    beforeAll(() => {
+      new TransliterateCommand({
+        schema_path: './e2e/page-examples/plan.yml',
+        output: './e2e/output/page'
+      }).run()
+    })
+
+    it('compiles a web client calling Page helpers', () => {
+      const result = compile(['./e2e/page-examples/valid.ts'])
+      expect(result.diagnostics).toEqual([])
+    })
+
+    it('borks when a Page helper is given another Page', () => {
+      const result = compile(['./e2e/page-examples/wrong-page.ts'])
+      expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining(`'\\"FarmMap\\"' is not assignable to type '\\"Login\\"'`)
+      )
+    })
+  })
+
   describe('configured Source attributes', () => {
     beforeAll(() => {
       new TransliterateCommand({
