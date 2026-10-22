@@ -1,3 +1,3 @@
-import screen, * as tracks from '../../output/screens/CompanyProfile'
+import view, * as tracks from '../../output/views/CompanyProfile'
 
-screen({})
+view({})

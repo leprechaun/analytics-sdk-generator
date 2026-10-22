@@ -1,6 +1,6 @@
-import screen, * as tracks from '../../output/screens/CompanyProfile'
+import view, * as tracks from '../../output/views/CompanyProfile'
 
-screen({})
+view({})
 
 tracks.CompanyProfileCompleted(
   {
@@ -9,6 +9,6 @@ tracks.CompanyProfileCompleted(
     sectors: ["F&B"]
   },
   {
-    screen: "ScreenThatDoesntExist"
+    view: "ViewThatDoesntExist"
   }
 )

@@ -1,7 +1,7 @@
 import TypeMapper from './TypeMapper'
 import * as types from './Types'
 import TrackingPlan from './TrackingPlan'
-import { Feature, Screen, Track, View } from './EventTypes'
+import { Track, View } from './EventTypes'
 
 describe(TrackingPlan, () => {
   const plan = {
@@ -15,22 +15,17 @@ describe(TrackingPlan, () => {
           }
         }
       },
-      FeatureSpecificTrack: {
-        name: "Feature Specific Track",
-        features: ['Special Feature']
+      ThirdTrack: {
+        name: "Third Track"
       }
     },
-    screens: {
+    views: {
       Welcome: {
         name: "Welcome Screen",
-        features: [
-          "Onboarding", "Just Onboarding"
-        ],
         tracks: ["SomeTrack", "AnotherTrack"]
       },
       AnotherScreen: {
-        name: "Another Screen",
-        features: [ 'AnotherFeature', 'Onboarding' ]
+        name: "Another Screen"
       }
     },
     traits: {
@@ -55,46 +50,13 @@ describe(TrackingPlan, () => {
 
   const TP = new TrackingPlan(plan)
 
-  describe(Feature, () => {
-    it('creates the features it finds', () => {
-      const features = TP.features
-
-      expect(features.length).toEqual(4)
-
-      expect(features.map( f => f.name)).toEqual(
-        expect.arrayContaining(['Onboarding', 'Just Onboarding', 'AnotherFeature', 'Special Feature'])
-      )
-    })
-  })
-
   describe(View, () => {
-    it('reads each `screens:` entry as a View appearing only as a Screen', () => {
-      expect(TP.views.map(view => [view.key, view.name, view.on])).toEqual([
-        ['Welcome', 'Welcome Screen', ['screen']],
-        ['AnotherScreen', 'Another Screen', ['screen']]
+    it('reads each `views:` entry as a View', () => {
+      expect(TP.views.map(view => [view.key, view.name])).toEqual([
+        ['Welcome', 'Welcome Screen'],
+        ['AnotherScreen', 'Another Screen']
       ])
-    })
-  })
-
-  describe(Screen, () => {
-    it('puts screens in .screens', () => {
-      const screens = TP.screens
-      expect(screens[0]).toBeInstanceOf(Screen)
-      expect(screens[0].key).toEqual('Welcome')
-
-      expect(screens[0]).toBeInstanceOf(Screen)
-      expect(screens[0].key).toEqual('Welcome')
-    })
-
-    it('puts the screens in the features', () => {
-      const screen = TP.features.filter( f => f.name == 'Onboarding')[0].screens[0]
-      expect(screen).toBeInstanceOf(Screen)
-      expect(screen.key).toEqual('Welcome')
-    })
-
-    it('puts the tracks in the feature screens', () => {
-      const screen = TP.features.filter( f => f.name == 'Onboarding')[0].screens.filter( s => s.key == 'Welcome')[0]
-      expect(screen.tracks.length).toEqual(2)
+      expect(TP.views[0]).toBeInstanceOf(View)
     })
   })
 
@@ -105,19 +67,6 @@ describe(TrackingPlan, () => {
       expect(tracks.length).toEqual(3)
     })
 
-    it('puts features in tracks', () => {
-      const tracks = TP.tracks
-      expect(tracks[2].features).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            name: 'Special Feature'
-          })
-        ])
-      )
-
-      expect(tracks[2].features.length).toEqual(1)
-    })
-
     it('puts tracks in .tracks', () => {
       const tracks = TP.tracks
       expect(tracks[0]).toBeInstanceOf(Track)
@@ -126,35 +75,17 @@ describe(TrackingPlan, () => {
       expect(tracks[1].key).toEqual('AnotherTrack')
     })
 
-    it('links the screens as well', () => {
-      expect(TP.screens[0].name).toEqual('Welcome Screen')
+    it('links the views as well', () => {
+      expect(TP.views[0].name).toEqual('Welcome Screen')
       expect(TP.tracks[0].name).toEqual('SomeTrack')
 
-      expect(TP.tracks[0].screens).toEqual(
+      expect(TP.tracks[0].views).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
             name: "Welcome Screen"
           })
         ])
       )
-    })
-  })
-
-  describe(Feature, () => {
-    it('has a name when constructed', () => {
-      const feature = new Feature("SomeFeature")
-
-      expect(feature.name).toEqual("SomeFeature")
-    })
-
-    it('has no screens by default', () => {
-      const feature = new Feature("SomeFeature")
-      expect(feature.screens).toEqual([])
-    })
-
-    it('has no tracks by default', () => {
-      const feature = new Feature("SomeFeature")
-      expect(feature.tracks).toEqual([])
     })
   })
 
@@ -181,5 +112,14 @@ describe(TrackingPlan, () => {
 
       expect(TP.traits.length).toEqual(1)
     })
+  })
+})
+
+describe('Features, which are no longer supported', () => {
+  it.each([
+    ['a View', { views: { Login: { features: ['Onboarding'] } } }, 'View Login'],
+    ['a Track', { tracks: { LoginFailed: { features: ['Onboarding'] } } }, 'Track LoginFailed']
+  ])('make the Tracking Plan fail to load when declared on %s, naming it', (_, plan, entry) => {
+    expect(() => new TrackingPlan(plan)).toThrow(`\`features\` is no longer supported: declared on ${entry}`)
   })
 })

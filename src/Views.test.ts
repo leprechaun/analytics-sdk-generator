@@ -8,94 +8,63 @@ describe('Views', () => {
 
   const login = {
     description: 'Prompts for login',
-    features: ['Onboarding'],
     tracks: ['LoginFailed'],
     properties: { first_visit: { type: 'boolean' } }
   }
 
-  describe('a View appearing only as a Screen', () => {
-    it('generates the same as the equivalent `screens:` entry', () => {
-      expect(generate({ tracks, views: { Login: { ...login, on: ['screen'] } } })).toEqual(
-        generate({ tracks, screens: { Login: login } })
+  describe('a View', () => {
+    const view = () => generate({ tracks, views: { Login: login } })['views/Login']
+
+    it('generates one helper that reports a View event, filling in its own `view`', () => {
+      expect(generate({ views: { Login: {} } })['views/Login']).toMatch(
+        /console\.log\("view", "Login", props, \{\s*view: "Login",\s*\.\.\.source\s*\}\)/
       )
     })
 
-    it('can be declared alongside `screens:`', () => {
-      const files = generate({ tracks, screens: { Splash: {} }, views: { Login: { ...login, on: ['screen'] } } })
-
-      expect(Object.keys(files)).toEqual(expect.arrayContaining(['screens/Splash', 'screens/Login']))
-      expect(files['shared-definitions']).toContain('export type ScreenNames = "Splash" | "Login";')
-    })
-  })
-
-  describe('a View appearing only as a Page', () => {
-    const files = () => generate({ tracks, views: { Login: { ...login, on: ['page'] } } })
-
-    it('generates a Page helper, and no Screen helper', () => {
-      expect(Object.keys(files())).toContain('pages/Login')
-      expect(Object.keys(files())).not.toContain('screens/Login')
-    })
-
-    it('reports a Page view, filling in its own `page`', () => {
-      expect(files()['pages/Login']).toMatch(
-        /console\.log\("page", "Login", props, \{\s*page: "Login",\s*feature: "Onboarding",\s*\.\.\.source\s*\}\)/
+    it('accepts only its own `view`, and an optional `url`, in its Source', () => {
+      expect(sourceParameterOf(view(), 'default')).toEqual(
+        '{ widget?: string; element?: string; action?: string; view?: "Login"; url?: string; }'
       )
     })
 
-    it('accepts only its own `page`, and an optional `url`, in its Source', () => {
-      expect(sourceParameterOf(files()['pages/Login'], 'default')).toEqual(
-        '{ widget?: string; element?: string; action?: string; page?: "Login"; url?: string; feature?: "Onboarding"; }'
+    it('exports its Tracks, filling in its `view`', () => {
+      expect(view()).toMatch(
+        /export const LoginFailed = [^]*?console\.log\("track", "LoginFailed", props, \{\s*view: "Login",\s*\.\.\.source\s*\}\)/
       )
-    })
-  })
-
-  describe('Tracks on a Page', () => {
-    const page = () => generate({ tracks, views: { Login: { ...login, on: ['page'] } } })['pages/Login']
-
-    it('are exported from the Page helper file, filling in `page`', () => {
-      expect(page()).toMatch(
-        /export const LoginFailed = [^]*?console\.log\("track", "LoginFailed", props, \{\s*page: "Login",\s*feature: "Onboarding",\s*\.\.\.source\s*\}\)/
+      expect(sourceParameterOf(view(), 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; view?: "Login"; url?: string; }'
       )
     })
 
-    it('accept only their own `page`, and an optional `url`, in their Source', () => {
-      expect(sourceParameterOf(page(), 'LoginFailed')).toEqual(
-        '{ widget?: string; element?: string; action?: string; page?: "Login"; url?: string; feature?: "Onboarding"; }'
-      )
-    })
-
-    it('are exported from both files when the View appears as both kinds, each with its own View', () => {
-      const files = generate({ tracks, views: { Login: login } })
-
-      expect(sourceParameterOf(files['screens/Login'], 'LoginFailed')).toEqual(
-        '{ widget?: string; element?: string; action?: string; screen?: "Login"; feature?: "Onboarding"; }'
-      )
-      expect(sourceParameterOf(files['pages/Login'], 'LoginFailed')).toEqual(
-        '{ widget?: string; element?: string; action?: string; page?: "Login"; url?: string; feature?: "Onboarding"; }'
+    it('generates no Screen or Page helpers', () => {
+      expect(Object.keys(generate({ tracks, views: { Login: login } }))).toEqual(
+        expect.not.arrayContaining([expect.stringMatching(/^(screens|pages)\//)])
       )
     })
   })
 
   describe('Tracks not tied to one View', () => {
-    const tracksFile = () => generate({
-      tracks: { AppOpened: {}, LoginFailed: {} },
-      screens: { Splash: { tracks: ['AppOpened'] } },
-      views: { Login: { tracks: ['LoginFailed'] } }
-    })['tracks']
+    const tracksFile = (plan: unknown) => generate(plan)['tracks']
 
-    it('still fill in the Screen of a Track on exactly one Screen-only View', () => {
-      expect(tracksFile()).toMatch(/console\.log\("track", "AppOpened", props, \{\s*screen: "Splash",\s*\.\.\.source\s*\}\)/)
+    it('fill in the View of a Track on exactly one', () => {
+      expect(tracksFile({ tracks, views: { Login: login } })).toMatch(
+        /console\.log\("track", "LoginFailed", props, \{\s*view: "Login",\s*\.\.\.source\s*\}\)/
+      )
     })
 
-    it('fill in no View for a Track on a View of both kinds, leaving the caller to choose', () => {
-      expect(tracksFile()).toMatch(/console\.log\("track", "LoginFailed", props, \{\s*\.\.\.source\s*\}\)/)
-    })
-  })
+    it('must name one of the Views a Track is on', () => {
+      const plan = { tracks, views: { Login: login, Signup: { tracks: ['LoginFailed'] } } }
 
-  describe('a View without `on:`', () => {
-    it('generates both a Screen helper and a Page helper', () => {
-      expect(Object.keys(generate({ tracks, views: { Login: login } }))).toEqual(
-        expect.arrayContaining(['screens/Login', 'pages/Login'])
+      expect(sourceParameterOf(tracksFile(plan), 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; view: "Login" | "Signup"; url?: string; }'
+      )
+    })
+
+    it('must name any View when a Track is on none', () => {
+      const plan = { tracks, views: { Splash: {} } }
+
+      expect(sourceParameterOf(tracksFile(plan), 'LoginFailed')).toEqual(
+        '{ widget?: string; element?: string; action?: string; view: shared.ViewNames; url?: string; }'
       )
     })
   })
@@ -103,31 +72,33 @@ describe('Views', () => {
   describe('name lists', () => {
     const sharedDefinitions = (plan: unknown) => generate(plan)['shared-definitions']
 
-    it('lists Views appearing as Pages in `PageNames`, and every View in `ViewNames`', () => {
-      const plan = { screens: { Splash: {} }, views: { Login: {}, FarmMap: { on: ['page'] } } }
+    it('lists every View in `ViewNames`, and no Screen, Page or Feature names', () => {
+      const definitions = sharedDefinitions({ views: { Login: {}, FarmMap: {} } })
 
-      expect(sharedDefinitions(plan)).toContain('export type PageNames = "Login" | "FarmMap";')
-      expect(sharedDefinitions(plan)).toContain('export type ViewNames = "Splash" | "Login" | "FarmMap";')
+      expect(definitions).toContain('export type ViewNames = "Login" | "FarmMap";')
+      expect(definitions).not.toMatch(/ScreenNames|PageNames|FeatureNames/)
     })
 
-    it('generates `PageNames` as `never` without Pages', () => {
-      expect(sharedDefinitions({ screens: { Splash: {} } })).toContain('export type PageNames = never;')
+    it('generates `ViewNames` as `never` without Views', () => {
+      expect(sharedDefinitions({ tracks })).toContain('export type ViewNames = never;')
     })
   })
 
   describe('declaration errors', () => {
-    it('rejects a name declared in both `views:` and `screens:`', () => {
-      const plan = { screens: { Login: {} }, views: { Login: { on: ['screen'] } } }
+    it('rejects `screens:`, pointing to `views:`', () => {
+      const plan = { screens: { Login: {}, Splash: {} } }
 
       expect(() => new TrackingPlan(plan)).toThrow(
-        'View declared in both `screens` and `views`: Login'
+        '`screens` is no longer supported: declare Login, Splash under `views` instead'
       )
     })
 
-    it('rejects an unknown kind in `on:`', () => {
-      const plan = { views: { Login: { on: ['screen', 'tablet'] } } }
+    it('rejects `on:`, since Views no longer have a kind', () => {
+      const plan = { views: { Login: { on: ['page'] } } }
 
-      expect(() => new TrackingPlan(plan)).toThrow('Unknown kind in `on` for View Login: tablet')
+      expect(() => new TrackingPlan(plan)).toThrow(
+        '`on` is no longer supported: View Login is reported as a Screen or a Page by the Implementation'
+      )
     })
   })
 })

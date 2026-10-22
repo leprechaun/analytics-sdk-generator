@@ -15,22 +15,17 @@ describe(Transliterator, () => {
           }
         }
       },
-      FeatureSpecificTrack: {
-        name: "Feature Specific Track",
-        features: ['Special Feature']
+      ThirdTrack: {
+        name: "Third Track"
       }
     },
-    screens: {
+    views: {
       Welcome: {
         name: "Welcome Screen",
-        features: [
-          "Onboarding", "Just Onboarding"
-        ],
         tracks: ["SomeTrack", "AnotherTrack"]
       },
       AnotherScreen: {
-        name: "Another Screen",
-        features: [ 'AnotherFeature', 'Onboarding' ]
+        name: "Another Screen"
       }
     },
     traits: {
@@ -51,13 +46,13 @@ describe(Transliterator, () => {
 
   const results = T.transliterate(TP)
 
-  describe('screens', () => {
+  describe('views', () => {
     it('should have a file for "Welcome"', () => {
-      expect(results.has('screens/Welcome')).toBe(true)
+      expect(results.has('views/Welcome')).toBe(true)
     })
 
     it('should have a file for "AnotherScreen"', () => {
-      expect(results.has('screens/AnotherScreen')).toBe(true)
+      expect(results.has('views/AnotherScreen')).toBe(true)
     })
   })
 
@@ -70,33 +65,15 @@ describe(Transliterator, () => {
   describe('shared-definitions', () => {
     const shared = results.get('shared-definitions') ?? []
 
-    describe('FeatureNames', () => {
-      it('should include FeatureNames', () => {
+    describe('ViewNames', () => {
+      it('should include ViewNames', () => {
         expect(shared).toEqual(expect.arrayContaining([
           expect.objectContaining({
-            comment: "List of all the feature names"
+            comment: "List of all the view names"
           }),
           expect.objectContaining({
             name: expect.objectContaining({
-              escapedText: "FeatureNames"
-            }),
-            type: expect.objectContaining({
-              kind: SyntaxKind.UnionType
-            })
-          })
-        ]))
-      })
-    })
-
-    describe('ScreenNames', () => {
-      it('should include ScreenNames', () => {
-        expect(shared).toEqual(expect.arrayContaining([
-          expect.objectContaining({
-            comment: "List of all the screen names"
-          }),
-          expect.objectContaining({
-            name: expect.objectContaining({
-              escapedText: "ScreenNames"
+              escapedText: "ViewNames"
             }),
             type: expect.objectContaining({
               kind: SyntaxKind.UnionType

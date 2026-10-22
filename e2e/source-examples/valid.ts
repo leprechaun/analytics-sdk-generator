@@ -1,3 +1,3 @@
-import * as home from '../output/source/screens/Home'
+import * as home from '../output/source/views/Home'
 
 home.BannerClicked(null, { campaign: 'spring', placement: 'header' })

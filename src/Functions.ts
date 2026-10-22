@@ -1,6 +1,6 @@
 import ts, {factory } from 'typescript'
 
-import { Page, Screen, Track } from './EventTypes'
+import { Track, View } from './EventTypes'
 import { BaseType, ObjectType } from './Types'
 import { Sources, SourceSchema } from './Source'
 import TypeMapper from './TypeMapper'
@@ -19,9 +19,9 @@ type ToASTOptions = {
 }
 
 export class AnalyticsFunction {
-  event: Track | Screen | Page
+  event: Track | View
 
-  constructor(definition: Track | Screen | Page) {
+  constructor(definition: Track | View) {
     this.event = definition
   }
 
@@ -138,11 +138,11 @@ export class AnalyticsFunction {
   }
 }
 
-function comment(event: Screen | Page | Track): ts.Node[] {
+function comment(event: View | Track): ts.Node[] {
   return event.description ? [factory.createJSDocComment(event.description)] : []
 }
 
-function namedExport(event: Screen | Track, options: ToASTOptions): ts.Node[] {
+function namedExport(event: Track, options: ToASTOptions): ts.Node[] {
   return [factory.createVariableStatement(
     [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
     factory.createVariableDeclarationList(
@@ -161,26 +161,14 @@ export function trackToAST(track: Track, options: ToASTOptions): ts.Node[] {
   return [...comment(track), ...namedExport(track, options)]
 }
 
-export function screenToAST(screen: Screen, options: ToASTOptions): ts.Node[] {
+export function viewToAST(view: View, options: ToASTOptions): ts.Node[] {
   return [
-    ...comment(screen),
+    ...comment(view),
     factory.createExportAssignment(
       undefined,
       undefined,
-      new AnalyticsFunction(screen).toAST(options)
+      new AnalyticsFunction(view).toAST(options)
     ),
-    ...screen.tracks.flatMap(track => trackToAST(track, options))
-  ]
-}
-
-export function pageToAST(page: Page, options: ToASTOptions): ts.Node[] {
-  return [
-    ...comment(page),
-    factory.createExportAssignment(
-      undefined,
-      undefined,
-      new AnalyticsFunction(page).toAST(options)
-    ),
-    ...page.tracks.flatMap(track => trackToAST(track, options))
+    ...view.tracks.flatMap(track => trackToAST(track, options))
   ]
 }

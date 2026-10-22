@@ -6,7 +6,7 @@ import * as Types from './Types'
 import TypeMapper from './TypeMapper'
 import { Sources } from './Source'
 
-const sources = new Sources(undefined, { screens: [], pages: [], features: [] })
+const sources = new Sources(undefined, [])
 
 const print = (nodelist: any[]) => {
   const nodes = factory.createNodeArray(nodelist)
@@ -216,35 +216,35 @@ describe(functions.AnalyticsFunction, () => {
     })
 
     describe('varies `type` accordingly', () => {
-      let screen
+      let view
       let ast
 
       beforeEach( () => {
-        screen = new EventTypes.Screen({
+        view = new EventTypes.View({
           key: "Test&Event",
           name: "Test And Event",
           properties
         } as InputTypes.TrackDefinition)
 
-        ast = new functions.AnalyticsFunction(screen).toAST({sources, hasImplementation: true, methodsAsync: true})
+        ast = new functions.AnalyticsFunction(view).toAST({sources, hasImplementation: true, methodsAsync: true})
       })
 
       describe('parameters', () => {
         it('has type as first parameter', () => {
-          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('screen')
+          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('view')
         })
       })
     })
   })
 })
 
-describe("screenToAST", () => {
-  describe('a bare screen without tracks', () => {
-    const screen = new EventTypes.Screen({
+describe("viewToAST", () => {
+  describe('a bare view without tracks', () => {
+    const view = new EventTypes.View({
       key: "SomeScreen",
       name: "Some Screen"
     })
-    const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
+    const ast = functions.viewToAST(view, {sources, methodsAsync: true})
     const main = ast[0]
 
     it('just has one statement', () => {
@@ -257,12 +257,12 @@ describe("screenToAST", () => {
     })
 
     describe('with a description', () => {
-      const screen = new EventTypes.Screen({
+      const view = new EventTypes.View({
         key: "SomeScreen",
         name: "Some Screen",
         description: "blah blah"
       })
-      const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
+      const ast = functions.viewToAST(view, {sources, methodsAsync: true})
       const comment = ast[0]
       const main = ast[1]
 
@@ -282,15 +282,15 @@ describe("screenToAST", () => {
     })
   })
 
-  describe('screen with a couple tracks', () => {
-    const screen = new EventTypes.Screen({
+  describe('view with a couple tracks', () => {
+    const view = new EventTypes.View({
       key: "SomeScreen",
       name: "Some Screen"
     })
-    screen.tracks.push(new EventTypes.Track({ key: "sometrack" }))
-    screen.tracks.push(new EventTypes.Track({ key: "anothertrack" }))
+    view.tracks.push(new EventTypes.Track({ key: "sometrack" }))
+    view.tracks.push(new EventTypes.Track({ key: "anothertrack" }))
 
-    const ast = functions.screenToAST(screen, {sources, methodsAsync: true})
+    const ast = functions.viewToAST(view, {sources, methodsAsync: true})
     const main = ast[0]
 
     it('has one statement for each', () => {
@@ -315,7 +315,7 @@ describe("screenToAST", () => {
 })
 
 describe("trackToAST", () => {
-  const screen = new EventTypes.Screen({
+  const view = new EventTypes.View({
     key: "SomeScreen",
     name: "Some Screen"
   })

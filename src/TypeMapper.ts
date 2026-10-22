@@ -15,8 +15,6 @@ export default class TypeMapper {
       return this.toUnionType(definition as InputTypes.UnionDefinition)
     } else if('const' in definition) {
       return this.toConstantType(definition as InputTypes.ConstantDefinition)
-    } else if('not' in definition) {
-      return new Types.NeverType({})
     } else {
       throw new Error("Unknown type definition")
     }

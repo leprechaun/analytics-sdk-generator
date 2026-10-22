@@ -1,11 +1,11 @@
 import TypeMapper from './TypeMapper'
 import * as types from './Types'
-import { Feature, Screen, Track } from './EventTypes'
+import { Track, View } from './EventTypes'
 
 describe("EventTypes", () => {
-  it('sets type=screen on Screen', () => {
-    const thing = new Screen({key: "SomeScreen"})
-    expect(thing.type).toEqual('screen')
+  it('sets type=view on View', () => {
+    const thing = new View({key: "SomeScreen"})
+    expect(thing.type).toEqual('view')
   })
 
   it('sets type=track on Track', () => {
@@ -13,7 +13,7 @@ describe("EventTypes", () => {
     expect(thing.type).toEqual('track')
   })
 
-  for(const t of[Screen, Track]) {
+  for(const t of[View, Track]) {
     describe(t, () => {
       describe('key', () => {
         it("exposes key from the cosntructor", () => {

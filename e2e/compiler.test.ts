@@ -78,29 +78,29 @@ describe("Compilation tests", () => {
     })
   })
 
-  describe('Pages', () => {
+  describe('Views', () => {
     beforeAll(() => {
       new TransliterateCommand({
-        schema_path: './e2e/page-examples/plan.yml',
-        output: './e2e/output/page'
+        schema_path: './e2e/view-examples/plan.yml',
+        output: './e2e/output/view'
       }).run()
     })
 
-    it('compiles a web client calling Page helpers', () => {
-      const result = compile(['./e2e/page-examples/valid.ts'])
+    it('compiles a client calling View helpers', () => {
+      const result = compile(['./e2e/view-examples/valid.ts'])
       expect(result.diagnostics).toEqual([])
     })
 
-    it('borks when a Page helper is given another Page', () => {
-      const result = compile(['./e2e/page-examples/wrong-page.ts'])
+    it('borks when a View helper is given another View', () => {
+      const result = compile(['./e2e/view-examples/wrong-view.ts'])
       expect(result.result).toBeFalsy()
       expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
         expect.stringContaining(`'\\"FarmMap\\"' is not assignable to type '\\"Login\\"'`)
       )
     })
 
-    it('borks when a Track on a Page is given a `screen`', () => {
-      const result = compile(['./e2e/page-examples/track-with-screen.ts'])
+    it('borks when a Track on a View is given a `screen`', () => {
+      const result = compile(['./e2e/view-examples/track-with-screen.ts'])
       expect(result.result).toBeFalsy()
       expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
         expect.stringContaining("'screen' does not exist")
@@ -120,19 +120,25 @@ describe("Compilation tests", () => {
       }).run()
     })
 
-    it('compiles a call naming either a Screen or a Page', () => {
+    it('compiles calls naming one of the Track\'s Views, or any View for a Track on none', () => {
       const result = compile(['./e2e/view-choice-examples/valid.ts'])
       expect(result.diagnostics).toEqual([])
     })
 
-    it('borks when a call names both a Screen and a Page', () => {
-      const result = compile(['./e2e/view-choice-examples/both-views.ts'])
+    it('borks when a call names a View the Track is not on', () => {
+      const result = compile(['./e2e/view-choice-examples/wrong-view.ts'])
       expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining(`'\\"Splash\\"' is not assignable`)
+      )
     })
 
-    it('borks when a call on a View of both kinds names neither', () => {
+    it('borks when a call on several Views names none', () => {
       const result = compile(['./e2e/view-choice-examples/no-view.ts'])
       expect(result.result).toBeFalsy()
+      expect(JSON.stringify(result.diagnostics[0].message)).toEqual(
+        expect.stringContaining("Property 'view' is missing")
+      )
     })
 
     it('compiles a call without a View when the plan has no Views', () => {

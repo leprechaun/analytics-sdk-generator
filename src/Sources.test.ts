@@ -1,175 +1,108 @@
-import { ObjectDefinition } from './InputTypes'
-import { Sources, SourceSchema } from './Source'
-
-// The Source type of an Event fired from at most one kind of View
-const objectOf = (type: SourceSchema['type']): ObjectDefinition => {
-  if ('oneOf' in type) throw new Error('Expected a single object type, got a choice')
-  return type
-}
+import { Sources } from './Source'
 
 describe(Sources, () => {
-  const names = { screens: ['Home', 'Settings'], pages: ['Home'], features: ['Onboarding', 'Account'] }
+  const viewNames = ['Home', 'Settings', 'FarmMap']
 
-  describe('a Screen view', () => {
-    it('names its Screen and Feature, filling both in, alongside the default Source attributes', () => {
-      expect(new Sources(undefined, names).of({ screens: ['Home'], pages: [], features: ['Onboarding'] })).toEqual({
+  describe('a View event', () => {
+    it('names its View, filling it in, alongside the default Source attributes', () => {
+      expect(new Sources(undefined, viewNames).of({ views: ['Home'] })).toEqual({
         type: {
           type: 'object',
           properties: {
             widget: { type: 'string' },
             element: { type: 'string' },
             action: { type: 'string' },
-            screen: { type: 'string', enum: ['Home'] },
-            feature: { type: 'string', enum: ['Onboarding'] }
+            view: { type: 'string', enum: ['Home'] },
+            url: { type: 'string' }
           },
           required: []
         },
-        filledIn: { screen: 'Home', feature: 'Onboarding' }
+        filledIn: { view: 'Home' }
       })
+    })
+  })
+
+  describe('a Track', () => {
+    const viewOf = (sources: Sources, views: string[]) => {
+      const { type, filledIn } = sources.of({ views })
+      return { view: type.properties.view, required: type.required.includes('view'), filledIn: filledIn.view }
+    }
+
+    it('fills in its View when on exactly one', () => {
+      expect(viewOf(new Sources(undefined, viewNames), ['Home'])).toEqual({
+        view: { type: 'string', enum: ['Home'] }, required: false, filledIn: 'Home'
+      })
+    })
+
+    it('must name one of its Views when on several', () => {
+      expect(viewOf(new Sources(undefined, viewNames), ['Home', 'Settings'])).toEqual({
+        view: { type: 'string', enum: ['Home', 'Settings'] }, required: true, filledIn: undefined
+      })
+    })
+
+    it('must name any View in the Tracking Plan when on none', () => {
+      expect(viewOf(new Sources(undefined, viewNames), [])).toEqual({
+        view: { $ref: '#/$defs/ViewNames' }, required: true, filledIn: undefined
+      })
+    })
+
+    it('names no View in a Tracking Plan without Views', () => {
+      expect(viewOf(new Sources(undefined, []), [])).toEqual({
+        view: undefined, required: false, filledIn: undefined
+      })
+    })
+  })
+
+  describe('`url`', () => {
+    it.each([
+      ['a View event', ['Home']],
+      ['a Track on several Views', ['Home', 'Settings']],
+      ['a Track on none', []]
+    ])('is an optional string on %s, never filled in', (_, views) => {
+      const { type, filledIn } = new Sources(undefined, viewNames).of({ views })
+
+      expect(type.properties.url).toEqual({ type: 'string' })
+      expect(type.required).not.toContain('url')
+      expect(filledIn).not.toHaveProperty('url')
     })
   })
 
   describe('the Tracking Plan\'s `source:` block', () => {
-    const homeScreen = { screens: ['Home'], pages: [], features: ['Onboarding'] }
+    const home = { views: ['Home'] }
 
     it('replaces the default Source attributes, keeping its `required`', () => {
-      const sources = new Sources({ required: ['campaign'], properties: { campaign: { type: 'string' } } }, names)
+      const sources = new Sources({ required: ['campaign'], properties: { campaign: { type: 'string' } } }, viewNames)
 
-      expect(objectOf(sources.of(homeScreen).type)).toEqual({
-        type: 'object',
-        properties: {
-          campaign: { type: 'string' },
-          screen: { type: 'string', enum: ['Home'] },
-          feature: { type: 'string', enum: ['Onboarding'] }
-        },
+      expect(sources.of(home).type).toMatchObject({
+        properties: { campaign: { type: 'string' }, view: { type: 'string', enum: ['Home'] } },
         required: ['campaign']
       })
+      expect(sources.of(home).type.properties).not.toHaveProperty('widget')
     })
 
     it('fills in its constants as optional defaults of their underlying type, even when required', () => {
-      const sources = new Sources({ required: ['platform', 'build'], properties: { platform: { const: 'web' }, build: { const: 42 } } }, names)
-      const { type, filledIn } = sources.of(homeScreen)
+      const sources = new Sources({ required: ['platform', 'build'], properties: { platform: { const: 'web' }, build: { const: 42 } } }, viewNames)
+      const { type, filledIn } = sources.of(home)
 
-      expect(objectOf(type).properties).toMatchObject({ platform: { type: 'string' }, build: { type: 'number' } })
-      expect(objectOf(type).required).toEqual([])
-      expect(filledIn).toEqual({ platform: 'web', build: 42, screen: 'Home', feature: 'Onboarding' })
+      expect(type.properties).toMatchObject({ platform: { type: 'string' }, build: { type: 'number' } })
+      expect(type.required).toEqual([])
+      expect(filledIn).toEqual({ platform: 'web', build: 42, view: 'Home' })
     })
 
-    it.each(['screen', 'feature', 'page', 'url'])('rejects declaring `%s`, which is reserved', name => {
-      expect(() => new Sources({ properties: { [name]: { type: 'string' } } }, names))
+    it('accepts a declared `feature`, which is no longer reserved', () => {
+      const sources = new Sources({ properties: { feature: { type: 'string' } } }, viewNames)
+
+      expect(sources.of(home).type.properties.feature).toEqual({ type: 'string' })
+    })
+
+    it.each(['view', 'url'])('rejects declaring `%s`, which is reserved', name => {
+      expect(() => new Sources({ properties: { [name]: { type: 'string' } } }, viewNames))
         .toThrow(`Reserved Source attributes cannot be declared in \`source\`: ${name}`)
     })
 
     it('rejects reserved Source attributes, naming each', () => {
-      expect(() => new Sources({ properties: { campaign: { type: 'string' }, url: { type: 'string' }, screen: { type: 'string' } } }, names))
-        .toThrow('Reserved Source attributes cannot be declared in `source`: url, screen')
-    })
-  })
-
-  describe('`feature`', () => {
-    const featureOf = (plan: typeof names, features: string[]) => {
-      const { type, filledIn } = new Sources(undefined, plan).of({ screens: ['Home'], pages: [], features })
-      const { properties, required } = objectOf(type)
-      return { type: properties.feature, required: required.includes('feature'), filledIn: filledIn.feature }
-    }
-
-    it('must be chosen when the View has several Features', () => {
-      expect(featureOf(names, ['Onboarding', 'Account'])).toEqual({
-        type: { type: 'string', enum: ['Onboarding', 'Account'] }, required: true, filledIn: undefined
-      })
-    })
-
-    it('can be any Feature in the Tracking Plan when the View has none', () => {
-      expect(featureOf(names, [])).toEqual({
-        type: { $ref: '#/$defs/FeatureNames' }, required: true, filledIn: undefined
-      })
-    })
-
-    it('is not a Source attribute when the Tracking Plan has no Features', () => {
-      expect(featureOf({ ...names, features: [] }, [])).toEqual({
-        type: undefined, required: false, filledIn: undefined
-      })
-    })
-  })
-
-  describe('a Track fired from one kind of View', () => {
-    const viewOf = (plan: typeof names, views: { screens: string[], pages: string[] }) => {
-      const { type, filledIn } = new Sources(undefined, plan).of({ ...views, features: ['Onboarding'] })
-      const { properties, required } = objectOf(type)
-      const { screen, page, url } = properties
-      return { screen, page, url, required, filledIn }
-    }
-
-    it('must name one of several Screens', () => {
-      expect(viewOf(names, { screens: ['Home', 'Settings'], pages: [] })).toEqual({
-        screen: { type: 'string', enum: ['Home', 'Settings'] }, page: undefined, url: undefined,
-        required: ['screen'], filledIn: { feature: 'Onboarding' }
-      })
-    })
-
-    it('must name one of several Pages, and accepts an optional `url`', () => {
-      expect(viewOf({ ...names, pages: ['Home', 'Map'] }, { screens: [], pages: ['Home', 'Map'] })).toEqual({
-        screen: undefined, page: { type: 'string', enum: ['Home', 'Map'] }, url: { type: 'string' },
-        required: ['page'], filledIn: { feature: 'Onboarding' }
-      })
-    })
-
-    it('can name any Screen when not tied to a View, in a Tracking Plan with only Screens', () => {
-      expect(viewOf({ ...names, pages: [] }, { screens: [], pages: [] })).toEqual({
-        screen: { $ref: '#/$defs/ScreenNames' }, page: undefined, url: undefined,
-        required: ['screen'], filledIn: { feature: 'Onboarding' }
-      })
-    })
-
-    it('can name any Page when not tied to a View, in a Tracking Plan with only Pages', () => {
-      expect(viewOf({ ...names, screens: [] }, { screens: [], pages: [] })).toEqual({
-        screen: undefined, page: { $ref: '#/$defs/PageNames' }, url: { type: 'string' },
-        required: ['page'], filledIn: { feature: 'Onboarding' }
-      })
-    })
-  })
-
-  describe('a Track fired from both kinds of View', () => {
-    const defaults = { widget: { type: 'string' }, element: { type: 'string' }, action: { type: 'string' } }
-
-    it('names exactly one of its Screens or Pages, filling in only what every choice shares', () => {
-      expect(new Sources(undefined, names).of({ screens: ['Home'], pages: ['Home'], features: ['Onboarding'] })).toEqual({
-        type: {
-          oneOf: [
-            {
-              type: 'object',
-              properties: { ...defaults, screen: { type: 'string', enum: ['Home'] }, feature: { type: 'string', enum: ['Onboarding'] }, page: { not: {} }, url: { not: {} } },
-              required: ['screen']
-            },
-            {
-              type: 'object',
-              properties: { ...defaults, page: { type: 'string', enum: ['Home'] }, url: { type: 'string' }, feature: { type: 'string', enum: ['Onboarding'] }, screen: { not: {} } },
-              required: ['page']
-            }
-          ]
-        },
-        filledIn: { feature: 'Onboarding' }
-      })
-    })
-
-    it('can name any Screen or any Page when not tied to a View, in a Tracking Plan with both', () => {
-      const { type } = new Sources(undefined, names).of({ screens: [], pages: [], features: [] })
-
-      expect(('oneOf' in type ? type.oneOf : []).map(option => [option.properties.screen, option.properties.page, option.required])).toEqual([
-        [{ $ref: '#/$defs/ScreenNames' }, { not: {} }, ['screen', 'feature']],
-        [{ not: {} }, { $ref: '#/$defs/PageNames' }, ['page', 'feature']]
-      ])
-    })
-  })
-
-  describe('a Page view', () => {
-    it('names its Page, filling it in, and accepts an optional `url`', () => {
-      const { type, filledIn } = new Sources(undefined, names).of({ screens: [], pages: ['Home'], features: ['Onboarding'] })
-
-      expect(objectOf(type).properties).toMatchObject({ page: { type: 'string', enum: ['Home'] }, url: { type: 'string' } })
-      expect(objectOf(type).properties).not.toHaveProperty('screen')
-      expect(objectOf(type).required).toEqual([])
-      expect(filledIn).toEqual({ page: 'Home', feature: 'Onboarding' })
+      expect(() => new Sources({ properties: { campaign: { type: 'string' }, url: { type: 'string' }, view: { type: 'string' } } }, viewNames))
+        .toThrow('Reserved Source attributes cannot be declared in `source`: url, view')
     })
   })
 })

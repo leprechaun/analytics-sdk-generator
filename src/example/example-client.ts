@@ -1,7 +1,7 @@
-import screen, * as tracks from '../../output/screens/CompanyProfile'
+import view, * as tracks from '../../output/views/CompanyProfile'
 
-screen()
-screen(null)
+view()
+view(null)
 
 tracks.CompanyProfileCompleted(
   {

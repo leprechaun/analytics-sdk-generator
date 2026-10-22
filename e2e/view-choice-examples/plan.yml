@@ -1,17 +1,15 @@
-screens:
+views:
   Splash:
     tracks:
       - AppOpened
-
-views:
   Login:
     tracks:
-      - LoginFailed
+      - Logout
   FarmMap:
-    on:
-      - page
+    tracks:
+      - Logout
 
 tracks:
   AppOpened: {}
-  LoginFailed: {}
   Logout: {}
+  Unattached: {}

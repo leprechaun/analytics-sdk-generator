@@ -97,17 +97,12 @@ export type AnySimpleDefinition = EnumeratedSimpleDefinition | NonEnumeratedSimp
 
 export type AliasDefinition = UnionDefinition | ReferenceDefinition
 
-// JSON Schema's "no value is valid"
-export type NeverDefinition = {
-  not: Record<string, never>
-} & Describable
-
-export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDefinition | NeverDefinition
+export type TypeDefinition = AnySimpleDefinition | AliasDefinition | ConstantDefinition
 
 export type EventDefinition = {
   key: string
   name?: string
-  type: "screen" | "page" | "track"
+  type: "view" | "track"
   features?: string[]
   description?: string
   additionalProperties?: boolean
@@ -118,4 +113,4 @@ export type EventDefinition = {
 
 export type TrackDefinition = Omit<EventDefinition, "type">
 
-export type ScreenDefinition = Omit<EventDefinition, "type"> & { tracks?: string[] }
+export type ViewDefinition = Omit<EventDefinition, "type"> & { tracks?: string[] }

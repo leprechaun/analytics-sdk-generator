@@ -12,55 +12,28 @@ describe('Source attributes', () => {
       tracks: {
         SomeTrack: {}
       },
-      screens: {
-        Home: { features: ['Onboarding'] }
+      views: {
+        Home: {}
       }
     }
 
     it('replaces the default Source attributes with the declared ones', () => {
       expect(sourceParameterOf(generate(plan)['tracks'], 'SomeTrack')).toEqual(
-        '{ campaign?: string; screen: shared.ScreenNames; feature: shared.FeatureNames; }'
+        '{ campaign?: string; view: shared.ViewNames; url?: string; }'
       )
     })
 
-    it('resolves a `$ref` to `$defs` in Screen helpers', () => {
+    it('resolves a `$ref` to `$defs` in View helpers', () => {
       const withRef = {
         ...plan,
         $defs: { Campaign: { type: 'string', enum: ['spring', 'autumn'] } },
         source: { properties: { campaign: { $ref: '#/$defs/Campaign' } } }
       }
 
-      expect(sourceParameterOf(generate(withRef)['screens/Home'], 'default')).toEqual(
-        '{ campaign?: shared.Campaign; screen?: "Home"; feature?: "Onboarding"; }'
+      expect(sourceParameterOf(generate(withRef)['views/Home'], 'default')).toEqual(
+        '{ campaign?: shared.Campaign; view?: "Home"; url?: string; }'
       )
     })
-  })
-
-  describe('a Tracking Plan without Screens or Features', () => {
-    const plan = { tracks: { SomeTrack: {} } }
-
-    it('generates empty name lists as `never`', () => {
-      const sharedDefinitions = generate(plan)['shared-definitions']
-
-      expect(sharedDefinitions).toContain('export type ScreenNames = never;')
-      expect(sharedDefinitions).toContain('export type FeatureNames = never;')
-    })
-  })
-
-  describe('a Screen view', () => {
-    const plan = {
-      screens: {
-        Home: { features: ['Onboarding'] },
-        Settings: {}
-      }
-    }
-
-    it('fills in its own `screen`', () => {
-      expect(generate(plan)['screens/Home']).toMatch(
-        /console\.log\("screen", "Home", props, \{\s*screen: "Home",\s*feature: "Onboarding",\s*\.\.\.source\s*\}\)/
-      )
-    })
-
   })
 
   describe('constant Source attributes', () => {
@@ -74,8 +47,8 @@ describe('Source attributes', () => {
       tracks: {
         SomeTrack: {}
       },
-      screens: {
-        Home: { features: ['Onboarding'] }
+      views: {
+        Home: {}
       }
     }
 
@@ -94,13 +67,13 @@ describe('Source attributes', () => {
           properties: {
             campaign: { type: 'string' },
             url: { type: 'string' },
-            screen: { type: 'string' }
+            view: { type: 'string' }
           }
         }
       }
 
       expect(() => new TrackingPlan(plan)).toThrow(
-        'Reserved Source attributes cannot be declared in `source`: url, screen'
+        'Reserved Source attributes cannot be declared in `source`: url, view'
       )
     })
   })

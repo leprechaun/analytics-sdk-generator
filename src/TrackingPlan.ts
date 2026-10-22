@@ -1,6 +1,6 @@
 import * as EventTypes from './EventTypes'
 import TypeMapper from './TypeMapper'
-import { EventDefinition, ScreenDefinition, TrackDefinition, TypeDefinition } from './InputTypes'
+import { EventDefinition, TrackDefinition, TypeDefinition, ViewDefinition } from './InputTypes'
 import { Sources } from './Source'
 
 import {
@@ -8,20 +8,14 @@ import {
 } from './Types'
 
 export default class TrackingPlan {
-  features: EventTypes.Feature[]
   views: EventTypes.View[]
-  screens: EventTypes.Screen[]
-  pages: EventTypes.Page[]
   tracks: EventTypes.Track[]
   defs: NamedType[]
   traits: NamedType[]
   sources: Sources
 
   constructor(plan: any) {
-    this.features = []
     this.views = []
-    this.screens = []
-    this.pages = []
     this.tracks = []
     this.defs = []
     this.traits = []
@@ -30,22 +24,14 @@ export default class TrackingPlan {
 
   parse(plan) {
     this.parseTracks(plan?.tracks)
-    const declaredTwice = Object.keys(plan?.screens ?? {}).filter(key => key in (plan?.views ?? {}))
-    if(declaredTwice.length > 0) {
-      throw new Error(`View declared in both \`screens\` and \`views\`: ${declaredTwice.join(', ')}`)
+    if(plan?.screens) {
+      throw new Error(`\`screens\` is no longer supported: declare ${Object.keys(plan.screens).join(', ')} under \`views\` instead`)
     }
 
-    this.parseViews(plan?.screens, () => ['screen'])
-    this.parseViews(plan?.views, view => view.on ?? EventTypes.viewKinds)
-    this.parseScreens()
-    this.parsePages()
+    this.parseViews(plan?.views)
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
-    this.sources = new Sources(plan?.source, {
-      screens: this.screens.map(s => s.name),
-      pages: this.pages.map(p => p.name),
-      features: this.features.map(f => f.name)
-    })
+    this.sources = new Sources(plan?.source, this.views.map(view => view.name))
   }
 
   parseTraits(traits) {
@@ -72,73 +58,28 @@ export default class TrackingPlan {
     }
   }
 
-  addFeaturesToEvent(definition: Omit<EventDefinition, 'type'>, event: EventTypes.Screen | EventTypes.Page | EventTypes.Track) {
-    definition.features?.forEach(featureName => {
-      const feature = this.getOrCreateFeature(featureName)
-      if (event instanceof EventTypes.Screen) {
-        feature.screens.push(event)
-      } else if (event instanceof EventTypes.Page) {
-        feature.pages.push(event)
-      } else {
-        feature.tracks.push(event)
-      }
-      event.features.push(feature)
-    })
-  }
-
-  addTracksToScreen(definition: ScreenDefinition, screen: EventTypes.Screen) {
-    if('tracks' in definition && Array.isArray(definition['tracks'])) {
-      for(const trackName of definition['tracks']) {
-        const t = this.getTrack(trackName)
-        screen.tracks.push(t.toScreenSpecific(screen))
-        t.screens.push(screen)
-      }
+  rejectFeatures(definition: Omit<EventDefinition, 'type'>, entry: string) {
+    if (definition.features) {
+      throw new Error(`\`features\` is no longer supported: declared on ${entry}`)
     }
   }
 
-  parseViews(views, kindsOf: (definition) => EventTypes.ViewKind[]) {
+  parseViews(views) {
     for(const key in views) {
-      const definition = views[key] ?? {}
-      const kinds = kindsOf(definition)
-
-      const unknown = kinds.filter(kind => !EventTypes.viewKinds.includes(kind))
-      if(unknown.length > 0) {
-        throw new Error(`Unknown kind in \`on\` for View ${key}: ${unknown.join(', ')}`)
+      const definition: ViewDefinition = views[key] ?? {}
+      this.rejectFeatures(definition, `View ${key}`)
+      if ('on' in definition) {
+        throw new Error(`\`on\` is no longer supported: View ${key} is reported as a Screen or a Page by the Implementation`)
       }
 
-      this.views.push(new EventTypes.View(key, definition, kinds))
-    }
-  }
-
-  parseScreen(view: EventTypes.View) {
-    const screen = new EventTypes.Screen({...view.definition, key: view.key} as ScreenDefinition)
-
-    this.addFeaturesToEvent(view.definition, screen)
-    this.addTracksToScreen(view.definition, screen)
-
-    return screen
-  }
-
-  parseScreens() {
-    for(const view of this.views.filter(v => v.on.includes('screen'))) {
-      this.screens.push(
-        this.parseScreen(view)
-      )
-    }
-  }
-
-  parsePages() {
-    for(const view of this.views.filter(v => v.on.includes('page'))) {
-      const page = new EventTypes.Page({...view.definition, key: view.key} as ScreenDefinition)
-
-      this.addFeaturesToEvent(view.definition, page)
-      for(const trackName of view.definition.tracks ?? []) {
+      const view = new EventTypes.View({...definition, key})
+      for(const trackName of definition.tracks ?? []) {
         const track = this.getTrack(trackName)
-        page.tracks.push(track.toPageSpecific(page))
-        track.pages.push(page)
+        view.tracks.push(track.toViewSpecific(view))
+        track.views.push(view)
       }
 
-      this.pages.push(page)
+      this.views.push(view)
     }
   }
 
@@ -146,29 +87,15 @@ export default class TrackingPlan {
     for(const key in tracks) {
       const track = new EventTypes.Track({...tracks[key], key} as TrackDefinition)
 
-      this.addFeaturesToEvent(tracks[key], track)
+      this.rejectFeatures(tracks[key], `Track ${key}`)
 
       this.tracks.push(track)
     }
   }
 
-  getOrCreateFeature(name: string): EventTypes.Feature {
-    const match = this.features.find(f => f.name === name)
-    if (match) return match
-    const feature = new EventTypes.Feature(name)
-    this.features.push(feature)
-    return feature
-  }
-
   getTrack(trackName: string): EventTypes.Track {
     const match = this.tracks.find(t => t.key === trackName)
     if (!match) throw new Error(`Track not found: ${trackName}`)
-    return match
-  }
-
-  getScreen(screenName: string): EventTypes.Screen {
-    const match = this.screens.find(s => s.key === screenName)
-    if (!match) throw new Error(`Screen not found: ${screenName}`)
     return match
   }
 }

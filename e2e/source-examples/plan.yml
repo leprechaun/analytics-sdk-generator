@@ -20,10 +20,8 @@ $defs:
       - spring
       - autumn
 
-screens:
+views:
   Home:
-    features:
-      - Onboarding
     tracks:
       - BannerClicked
 

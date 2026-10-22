@@ -1,3 +1,3 @@
 import * as tracks from '../output/view-choice/tracks'
 
-tracks.LoginFailed(null, { widget: 'banner' })
+tracks.Logout(null, { widget: 'banner' })

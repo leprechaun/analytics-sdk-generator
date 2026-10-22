@@ -1,12 +1,8 @@
 views:
   Login:
-    features:
-      - Onboarding
     tracks:
       - LoginFailed
-  FarmMap:
-    on:
-      - page
+  FarmMap: {}
 
 tracks:
   LoginFailed:
