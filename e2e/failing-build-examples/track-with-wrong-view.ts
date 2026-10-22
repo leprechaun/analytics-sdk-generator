@@ -1,14 +1,14 @@
 import view, * as tracks from '../../output/views/CompanyProfile'
 
-view({})
+view()
 
-tracks.CompanyProfileCompleted(
-  {
+tracks.CompanyProfileCompleted({
+  props: {
     companyType: 'llc',
     hasAddress: true,
     sectors: ["F&B"]
   },
-  {
+  source: {
     view: "ViewThatDoesntExist"
   }
-)
+})

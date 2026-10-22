@@ -28,7 +28,7 @@ yarn ts-node src/bin/cli.ts transliterate \
 yarn ts-node src/example/example-client.ts
 ```
 
-The transliterate command parses your analytics schema in `./src/example/example-schema.yml`, generates the code, and writes it to `./output`. Specifying `--implementation` is meant to specify a file whose default export is your analytics reporter implementation; by default, itonly does `console.log(...)`. `--methodsAsync true|false` will mark all methods as asynchronous and await the implementation.
+The transliterate command parses your analytics schema in `./src/example/example-schema.yml`, generates the code, and writes it to `./output`. Specifying `--implementation` is meant to specify a file whose default export is your analytics reporter implementation; by default, it only does `console.log(...)`. Its default export must be an `Implementation` (see The implementation, below). `--methodsAsync true|false` will mark all methods as asynchronous and await the implementation.
 
 ## Schema format
 
@@ -144,7 +144,7 @@ traits:
 
 ### Source
 
-Every event can be given a `source`, describing where in the app it originated. The `screen` and `feature` source attributes are always derived from your screens and features. The remaining source attributes default to `widget`, `element` and `action`, all optional strings.
+Every event can be given a `source`, describing what caused it. Source attributes default to `widget`, `element` and `action`, all optional strings.
 
 To use your own source attributes instead, declare a `source` block. It is an object in json-schema form, like event `properties`, and **replaces** the defaults entirely.
 
@@ -164,50 +164,45 @@ source:
 
 `required` lists the source attributes every event must be given. Any source attribute not declared here is rejected at compile time.
 
-`screen`, `feature`, `page` and `url` are reserved: the generator derives them, so declaring any of them in `source` fails the build.
+`view` and `url` are reserved for your implementation, which sets them to the view the user came from and its URL (see The implementation, below). Declaring either in `source` fails the build.
 
-A source attribute declared as a `const` is a default: it is sent with every event without being passed, and is always optional. A caller can still pass a different value of the same type, which replaces the default for that event.
+A source attribute can't be a `const`: facts about the build, such as the platform, belong to your implementation, so declaring one fails the build.
+
+### View attributes
+
+View attributes are facts about a view, such as the section of the product it belongs to. Declare them once in `view_attributes`, an object in json-schema form like `source`, and set each view's values under its `attributes`:
 
 ```
-source:
+view_attributes:
+  required:
+  - section
   properties:
-    platform:
-      const: web
+    section:
+      type: string
+      enum:
+      - onboarding
+      - farming
+
+views:
+  FarmMap:
+    attributes:
+      section: farming
 ```
+
+Every event on a view carries its attributes alongside its name: `view: {name: "FarmMap", section: "farming"}`. A view setting an undeclared attribute, a value that doesn't fit its declaration (its `type` or `enum`), or leaving out a required one fails the build. `name` and `url` are reserved.
 
 ### Views
 
-A view is a place the user can be in your product, declared once whatever the platform. It appears as a screen in mobile apps, as a page on the web, or both, as listed in `on`.
+A view is a place the user can be in your product, declared once whatever the platform. The generated SDK reports a `view` event; your implementation decides whether to report it as a screen (in a mobile app) or a page (on a website), e.g. with Segment's `screen()` or `page()`.
+
+Views (and Tracks) are the two main event types, and as such are first class citizens.
 
 ```
 views:
-  Login:
-    on:
-    - screen
-    features:
-    - Onboarding
-    tracks:
-    - LoginFailed
-```
-
-A view accepts everything a screen does (see below), plus `on`, which lists `screen`, `page`, or both. It defaults to both.
-
-A name can be declared in `views` or `screens`, not both.
-
-### Screens
-
-`screens` is shorthand for views that appear only as screens: an entry here is the same as a `views` entry with `on: [screen]`.
-
-Screens (and Tracks) are the two main event types, and as such are first class citizens.
-
-```
-screens:
   Welcome:
     name: welcome screen
-    features:
-    - Onboarding
     description: |
-      This screen is the first screens users see when using the app.
+      This is the first view users see when using the app.
     properties:
       is_first_open:
         description: Wether this is the first time the user opens the app
@@ -219,14 +214,14 @@ screens:
     tracks:
     - SomeTrack
     links:
-    - AnotherScreen
+    - AnotherView
 ```
+
+`on`, which used to list the kinds a view appeared as, and `screens`, which used to declare views appearing only as screens, are no longer supported: either fails the build.
 
 `Welcome` is the event key. It will be used as the function names, and should be a valid javascript variable name.
 
 `name: welcome` is the event name. The default is to re-use the event key.
-
-`features` is a list of features this event is associated with.
 
 `description` allows you to describe this event in free text. It will be included as a comment in the code, potentially displayed by your IDEs auto-suggestion.
 
@@ -234,9 +229,9 @@ screens:
 
 `required` is the list of property names that must be present in the event. It defaults to empty. Any property listed will be non-optional in the property types generated.
 
-`tracks` is a list of `track` type events associated to this screen. Each event listed here will also result in an additional function in the screen function files.
+`tracks` is a list of `track` type events associated to this view. Each event listed here will also result in an additional function in the view's file.
 
-`links` is a list of `screen` type events associated with this screen, typically screens a user can navigate to from here.
+`links` is a list of views associated with this view, typically views a user can navigate to from here.
 
 ### Tracks
 
@@ -245,8 +240,6 @@ Tracks are events that can be emitted based on user interactions with your app t
 ```
 tracks:
   SomeTrack:
-    features:
-    - Onboarding
     description: |
       This event is emitted when something happens
     properties:
@@ -260,43 +253,75 @@ tracks:
 
 Look at `./src/examples/example-client.ts`.
 
-All `screen` events will result in a file in `./$outputDirectory/screens/$EventKey.ts`. The default export will be the analytics function that emits that screen event.
+Every view results in a file in `./$outputDirectory/views/$EventKey.ts`. The default export is the analytics function that emits that view event. All `track` events associated with this view are also included in this file, exported by name.
 
-All `track` events associated with this screen will also be included in this file, exported by name.
-
-```
-import screen, * as tracks from './$outputDirectory/screens/Welcome'
-
-//  emit type: screen, name: welcome screen, {is_first_open,another_property}
-screen({is_first_open: true, another_property: "some string"})
-
-//  emit type: track, name: SomeTrack, {some_property}
-tracks.SomeTrack({some_property: "another property"})
-```
-
-Views appearing as pages result in a file in `./$outputDirectory/pages/$EventKey.ts`, whose default export emits that page event. A page event's source names the `page`, filled in for you, and accepts an optional `url`. The generator never fills in the `url`: your implementation should, typically from `window.location`, when the caller doesn't pass one.
-
-All `track` events associated with this view are also included in its page file, exported by name. Their source names the `page` instead of a `screen`, and also accepts an optional `url`. A view appearing as both a screen and a page exports its tracks from both files.
+Every helper takes one argument: `props`, the event's properties, and `source`, what caused it. `props` is only accepted when the event has properties, and required when one of them is; `source` is required when your `source` block requires an attribute. When nothing is required, the argument can be left out altogether.
 
 ```
-import page, * as tracks from './$outputDirectory/pages/Login'
+import view, * as tracks from './$outputDirectory/views/Welcome'
 
-//  emit type: page, name: Login, source: {page: "Login", ...}
-page()
-
-//  emit type: track, name: LoginFailed, source: {page: "Login", url, ...}
-tracks.LoginFailed({reason: "timeout"}, {url: window.location.href})
+view({props: {is_first_open: true, another_property: "some string"}})
+tracks.SomeTrack({props: {some_property: "another property"}, source: {widget: "menu"}})
 ```
 
-`shared-definitions.ts` lists the names of every screen (`ScreenNames`), page (`PageNames`) and view (`ViewNames`). A list with no names is `never`.
-
-Every `track` event is also exported by name from `./$outputDirectory/tracks.ts`, not tied to any one view. When it can be fired from both screens and pages, its source names exactly one of them: either a `screen`, or a `page` and optionally its `url`. A track attached to exactly one screen, and nothing else, still has that screen filled in for you.
+Every `track` event is also exported by name from `./$outputDirectory/tracks.ts`, not tied to any one view.
 
 ```
 import * as tracks from './$outputDirectory/tracks'
 
-tracks.LoginFailed({reason: "timeout"}, {screen: "Login"})
-tracks.LoginFailed({reason: "timeout"}, {page: "Login", url: window.location.href})
+tracks.LoginFailed({props: {reason: "timeout"}, source: {widget: "login-form"}})
 ```
 
-A plan without screens or pages has no `screen` or `page` source attribute, and a plan without features has no `feature` source attribute.
+### The implementation
+
+Every helper hands your implementation one event, with its parts kept separate:
+
+```
+{
+  type: "view",                       // or "track"
+  name: "Welcome",
+  properties: {is_first_open: true, another_property: "some string"},
+  view: {name: "Welcome"},            // the view it happened on
+  source: {widget: "menu"}            // what caused it, as passed by the caller
+}
+```
+
+The generated SDK is stateless (see `docs/adr/0003-stateless-sdk-navigation-in-the-implementation.md`), so it fills in only what your Tracking Plan determines, and leaves the rest of the event for your implementation to complete:
+
+| | Filled in by the generated SDK | Completed by your implementation |
+|---|---|---|
+| `view.name` | when the helper belongs to exactly one view: view events, and tracks exported from a view's file | for tracks on several views, or none: the current view |
+| View attributes in `view` | when `view.name` is filled in | along with `view.name`, from `viewAttributes` |
+| `view.url` | never | the current URL, e.g. `location.href` |
+| `source.view`, `source.url` | never | on view events: the view the user came from, and its URL |
+| the rest of `source` | as passed by the caller | |
+
+`shared-definitions.ts` exports the event's type, `AnalyticsEvent`, and the implementation's, `Implementation`, so your implementation can be checked against your Tracking Plan.
+
+`AnalyticsEvent` has one member per view and per track. Narrow an event on its `type` and `name` (a view and a track may share a name) to get its properties, and the views it can happen on, typed by your Tracking Plan:
+
+```
+if (event.type === 'track' && event.name === 'LoginFailed') {
+  event.properties.reason      // string | undefined
+  event.view.name              // "Login" | "Signup" | undefined
+}
+```
+
+Since `view.name` is narrowed per event, complete the view in a copy, e.g. `const view: {name?: ViewNames, url?: string} & Partial<ViewAttributes> = {...event.view, name: current}`, rather than writing to `event.view`.
+
+`./src/example/example-implementation.ts` is a complete example. It remembers the current view (in `sessionStorage` on the web, so it survives a reload), completes each event as above, and reports view events as pages on the web and screens on mobile, using a Segment-style client:
+
+```
+import { createImplementation } from './example-implementation'
+
+export default createImplementation({
+  client: analytics,                  // Segment's or RudderStack's
+  platform: 'web',
+  storage: sessionStorage,
+  currentUrl: () => location.href
+})
+```
+
+`shared-definitions.ts` also lists the names of every view (`ViewNames`), and every view's View attributes (`viewAttributes`, keyed by view name), so your implementation can complete `view` for tracks on several views. A list with no names is `never`.
+
+Features are no longer supported: declaring `features` on a view or track fails the build.

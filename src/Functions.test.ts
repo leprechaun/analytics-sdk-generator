@@ -6,7 +6,7 @@ import * as Types from './Types'
 import TypeMapper from './TypeMapper'
 import { Sources } from './Source'
 
-const sources = new Sources(undefined, [])
+const sources = new Sources(undefined)
 
 const print = (nodelist: any[]) => {
   const nodes = factory.createNodeArray(nodelist)
@@ -84,7 +84,7 @@ describe(functions.AnalyticsFunction, () => {
     spyTrackPropsToAST.mockReturnValueOnce(trackProps)
 
     spySourcesOf = jest.spyOn(sources, 'of')
-    spySourcesOf.mockReturnValue({ type: trackSourceDefinition, filledIn: {} })
+    spySourcesOf.mockReturnValue(trackSourceDefinition)
 
     fn = new functions.AnalyticsFunction(track)
     ast = fn.toAST({sources, hasImplementation: false, methodsAsync: true})
@@ -111,49 +111,13 @@ describe(functions.AnalyticsFunction, () => {
     })
   })
 
-  describe('parameters', () => {
-    let propsParameter
-    let sourceParameter
-
-    beforeEach( () => {
-      propsParameter = ast.parameters[0]
-      sourceParameter = ast.parameters[1]
+  describe('argument', () => {
+    it('casts an expanded props object', () => {
+      expect(spyTrackPropsToAST).toHaveBeenCalled()
     })
 
-    describe('properties', () => {
-      it('casts an expanded props object', () => {
-        expect(spyTrackPropsToAST).toHaveBeenCalled()
-      })
-
-      it('has props as first argument', () => {
-        expect(propsParameter.name.escapedText).toEqual('props')
-      })
-
-      it('marks props as required', () => {
-        expect(propsParameter.questionToken).toBeUndefined()
-      })
-
-      it('sets whatever that returns to the props parameter', () => {
-        expect(propsParameter.type.members).toEqual(trackProps.members)
-      })
-    })
-
-    describe('source', () => {
-      it('has source as second argument', () => {
-        expect(sourceParameter.name.escapedText).toEqual('source')
-      })
-
-      it('marks source as optional', () => {
-        expect(sourceParameter.questionToken).not.toBeUndefined()
-      })
-
-      it("asks the Tracking Plan's Sources for the Source of the Event's Views", () => {
-        expect(sources.of).toHaveBeenCalledWith(track.eventViews())
-      })
-
-      it('sets whatever that returns to the props parameter', () => {
-        expect(sourceParameter.type.members).toEqual(trackSource.toAST().members)
-      })
+    it("takes its Source type from the Tracking Plan's Sources", () => {
+      expect(sources.of).toHaveBeenCalled()
     })
   })
 
@@ -162,25 +126,6 @@ describe(functions.AnalyticsFunction, () => {
       it('calls console.log', () => {
         expect(ast.body.statements[0].expression.expression.escapedText).toEqual("console")
         expect(ast.body.statements[0].expression.name.escapedText).toEqual("log")
-      })
-
-      describe('parameters', () => {
-        it('has type as first parameter', () => {
-          expect(ast.body.statements[0].arguments[0].text).toEqual('track')
-
-        })
-
-        it('has name as second parameter', () => {
-          expect(ast.body.statements[0].arguments[1].text).toEqual('Test And Event')
-        })
-
-        it('has props as third parameter', () => {
-          expect(ast.body.statements[0].arguments[2].escapedText).toEqual('props')
-        })
-
-        it('overwrites source with defaults as 4th argument', () => {
-          expect(ast.body.statements[0].arguments[3].kind).toEqual(SyntaxKind.ObjectLiteralExpression)
-        })
       })
     })
 
@@ -191,48 +136,6 @@ describe(functions.AnalyticsFunction, () => {
 
       it('calls implementation', () => {
         expect(ast.body.statements[0].expression.expression.expression.escapedText).toEqual("implementation")
-      })
-
-      describe('parameters', () => {
-        it('has type as first parameter', () => {
-          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('track')
-        })
-
-        it('has name as second parameter', () => {
-          expect(ast.body.statements[0].expression.expression.arguments[1].text).toEqual('Test And Event')
-        })
-
-        it('has props as third parameter', () => {
-          expect(ast.body.statements[0].expression.expression.arguments[2].escapedText).toEqual('props')
-        })
-
-        it('overwrites source with defaults as 4th argument', () => {
-          const source = ast.body.statements[0].expression.expression.arguments[3]
-          expect(source.kind).toEqual(SyntaxKind.ObjectLiteralExpression)
-          expect(source.properties[ source.properties.length - 1].kind).toEqual(SyntaxKind.SpreadAssignment)
-          expect(source.properties[ source.properties.length - 1].expression.escapedText).toEqual("source")
-        })
-      })
-    })
-
-    describe('varies `type` accordingly', () => {
-      let view
-      let ast
-
-      beforeEach( () => {
-        view = new EventTypes.View({
-          key: "Test&Event",
-          name: "Test And Event",
-          properties
-        } as InputTypes.TrackDefinition)
-
-        ast = new functions.AnalyticsFunction(view).toAST({sources, hasImplementation: true, methodsAsync: true})
-      })
-
-      describe('parameters', () => {
-        it('has type as first parameter', () => {
-          expect(ast.body.statements[0].expression.expression.arguments[0].text).toEqual('view')
-        })
       })
     })
   })

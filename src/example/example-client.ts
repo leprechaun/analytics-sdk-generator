@@ -1,12 +1,12 @@
 import view, * as tracks from '../../output/views/CompanyProfile'
 
 view()
-view(null)
+view({ source: { widget: 'menu' } })
 
-tracks.CompanyProfileCompleted(
-  {
+tracks.CompanyProfileCompleted({
+  props: {
     companyType: 'llc',
     hasAddress: true,
     sectors: ["F&B"]
   }
-)
+})

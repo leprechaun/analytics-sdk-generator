@@ -17,10 +17,10 @@ export const generate = (plan: unknown): { [file: string]: string } => {
   )
 }
 
-// The text of the `source` parameter's type for a generated helper; `default` for a Screen's own helper
+// The text of the type of `source` in a generated helper's argument; `default` for a View's own helper
 export const sourceParameterOf = (code: string, helper: string) => {
   const declaration = helper === 'default' ? 'export default ' : `export const ${helper} = `
-  const match = code.match(new RegExp(`${declaration}\\(props[^)]*?, source\\?: (\\{[^}]*\\})`))
+  const match = code.match(new RegExp(`${declaration}(?:async )?\\(args: \\{[^]*?source\\??: (\\{[^}]*\\})`))
   if (!match) throw new Error(`No helper named ${helper} in:\n${code}`)
   return match[1].replace(/\s+/g, ' ')
 }

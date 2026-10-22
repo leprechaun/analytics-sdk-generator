@@ -2,9 +2,9 @@ import view, * as tracks from '../../output/views/CompanyProfile'
 
 view()
 
-tracks.CompanyProfileCompleted(
-  {
+tracks.CompanyProfileCompleted({
+  props: {
     hasAddress: true,
     sectors: ["F&B"]
   }
-)
+})

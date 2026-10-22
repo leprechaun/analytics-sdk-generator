@@ -1,3 +1,3 @@
 import * as home from '../output/source/views/Home'
 
-home.BannerClicked(null, { placement: 'header' })
+home.BannerClicked({ source: { placement: 'header' } })

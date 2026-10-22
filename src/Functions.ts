@@ -1,8 +1,9 @@
 import ts, {factory } from 'typescript'
 
 import { Track, View } from './EventTypes'
-import { BaseType, ObjectType } from './Types'
-import { Sources, SourceSchema } from './Source'
+import { ObjectType } from './Types'
+import { Sources } from './Source'
+import { ViewAttributeValue } from './InputTypes'
 import TypeMapper from './TypeMapper'
 
 type ImportMapping = string[]
@@ -18,6 +19,12 @@ type ToASTOptions = {
   sources: Sources
 }
 
+export function literal(value: ViewAttributeValue): ts.Expression {
+  if (typeof value === 'number') return factory.createNumericLiteral(value)
+  if (typeof value === 'boolean') return value ? factory.createTrue() : factory.createFalse()
+  return factory.createStringLiteral(value)
+}
+
 export class AnalyticsFunction {
   event: Track | View
 
@@ -25,55 +32,76 @@ export class AnalyticsFunction {
     this.event = definition
   }
 
-  parameter(name: string, type: ts.TypeNode, optional = false) {
+  // A type literal member of the helper's argument
+  member(name: string, type: ts.TypeNode, optional: boolean) {
+    return factory.createPropertySignature(
+      undefined,
+      name,
+      optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
+      type
+    )
+  }
+
+  // One named argument: `props` (only when the Event has Properties) and `source`
+  argsParameter(properties: ObjectType, source: ObjectType, options: ToASTOptions) {
+    const members = [
+      ...(this.hasProperties() ? [this.member("props", properties.toAST(options), !this.requires(properties))] : []),
+      this.member("source", source.toAST(options), !this.requires(source))
+    ]
+    const optional = !this.requires(properties) && !this.requires(source)
+
     return factory.createParameterDeclaration(
       undefined,
       undefined,
-      factory.createIdentifier(name),
-      optional ? factory.createToken(ts.SyntaxKind.QuestionToken) : undefined,
-      type,
-      undefined
+      factory.createIdentifier("args"),
+      undefined,
+      factory.createTypeLiteralNode(members),
+      optional ? factory.createObjectLiteralExpression() : undefined
     )
   }
 
-  propsParameter(properties: ObjectType, options: ToASTOptions) {
-    return properties.properties.length === 0
-      ? this.parameter("props", factory.createLiteralTypeNode(factory.createNull()), true)
-      : this.parameter("props", properties.toAST(options), false)
+  // Whether the caller must pass some of these attributes
+  requires(type: ObjectType) {
+    return type.properties.some(property => property.required)
   }
 
-  sourceParameter(source: BaseType, options?: ToASTOptions) {
-    const sourceType = source.toAST(options) as ts.TypeNode
-    return this.parameter(
-      "source",
-      ts.isTypeLiteralNode(sourceType)
-        ? factory.createTypeLiteralNode(sourceType.members)
-        : sourceType as ts.TypeNode,
-      true
-    )
+  hasProperties() {
+    return this.event.properties.properties.length > 0
   }
 
-  // The values filled in for the caller, overridden by their own Source
-  filledInSource(filledIn: SourceSchema['filledIn']) {
+  // `args.<name>`
+  arg(name: string) {
+    return factory.createPropertyAccessExpression(factory.createIdentifier("args"), name)
+  }
+
+  // The Event handed to the Implementation: what happened, the View it happened on, and its Source
+  eventLiteral(sourceLiteral: ts.Expression) {
+    // A single View is named, with its View attributes; otherwise the Implementation completes it
+    const { views } = this.event.eventViews()
+    const view = views.length === 1
+      ? [
+        factory.createPropertyAssignment("name", factory.createStringLiteral(views[0].name)),
+        ...Object.entries(views[0].attributes).map(([name, value]) => factory.createPropertyAssignment(name, literal(value)))
+      ]
+      : []
+
     return factory.createObjectLiteralExpression(
       [
-        ...Object.entries(filledIn).map(([name, value]) => factory.createPropertyAssignment(
-          factory.createIdentifier(name),
-          typeof value === 'number' ? factory.createNumericLiteral(value) : factory.createStringLiteral(value)
-        )),
-        factory.createSpreadAssignment(factory.createIdentifier("source"))
+        factory.createPropertyAssignment("type", factory.createStringLiteral(this.event.type)),
+        factory.createPropertyAssignment("name", factory.createStringLiteral(this.event.name)),
+        // The Implementation always sees `null` when there are no Properties to report
+        factory.createPropertyAssignment("properties", this.hasProperties()
+          ? factory.createBinaryExpression(this.arg("props"), ts.SyntaxKind.QuestionQuestionToken, factory.createNull())
+          : factory.createNull()),
+        factory.createPropertyAssignment("view", factory.createObjectLiteralExpression(view, true)),
+        factory.createPropertyAssignment("source", sourceLiteral)
       ],
       true
     )
   }
 
   implementation(options: ToASTOptions, sourceLiteral: ts.Expression) {
-    const params = [
-      factory.createStringLiteral(this.event.type),
-      factory.createStringLiteral(this.event.name),
-      factory.createIdentifier("props"),
-      sourceLiteral
-    ]
+    const params = [this.eventLiteral(sourceLiteral)]
 
     return options.hasImplementation
       ? this.specifiedImplementation(options, params)
@@ -98,18 +126,17 @@ export class AnalyticsFunction {
     const [source, sourceLiteral] = this.sourceOf(options)
     return this.fn(
       options.methodsAsync ? [factory.createModifier(ts.SyntaxKind.AsyncKeyword)] : undefined,
-      [
-        this.propsParameter(this.event.properties, options),
-        this.sourceParameter(source, options),
-      ],
+      [this.argsParameter(this.event.properties, source, options)],
       this.implementation(options, sourceLiteral)
     )
   }
 
-  // The Source type the helper accepts, and the literal it passes on
-  sourceOf(options: ToASTOptions): [BaseType, ts.Expression] {
-    const schema = options.sources.of(this.event.eventViews())
-    return [TypeMapper.toSpecificType(schema.type), this.filledInSource(schema.filledIn)]
+  // The Source type the helper accepts, and what it passes on: the caller's Source, as an object even when left out
+  sourceOf(options: ToASTOptions): [ObjectType, ts.Expression] {
+    return [
+      TypeMapper.toSpecificType(options.sources.of()) as ObjectType,
+      factory.createObjectLiteralExpression([factory.createSpreadAssignment(this.arg("source"))], true)
+    ]
   }
 
   specifiedImplementation(options: ToASTOptions, params: ts.Expression[]) {

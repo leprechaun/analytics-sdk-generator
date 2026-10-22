@@ -1,9 +1,13 @@
 import TypeMapper from './TypeMapper'
-import { EventDefinition, TrackDefinition, ViewDefinition, ObjectDefinition } from './InputTypes'
+import { EventDefinition, TrackDefinition, ViewDefinition, ViewAttributeValue, ObjectDefinition } from './InputTypes'
 import { ObjectType } from './Types'
-import { EventViews } from './Source'
 
 export type EventType = "view" | "track"
+
+// The Views an Event can be fired from
+export type EventViews = {
+  views: View[]
+}
 
 export class Event {
   type: EventType
@@ -57,14 +61,16 @@ export class Event {
 export class View extends Event {
   type: "view"
   tracks: Track[] = []
+  attributes: { [attribute: string]: ViewAttributeValue }
 
   constructor(definition: ViewDefinition) {
     super({...definition, type: "view"})
+    this.attributes = definition.attributes ?? {}
   }
 
   // A View event is always fired from the View itself
   eventViews(): EventViews {
-    return { views: [this.name] }
+    return { views: [this] }
   }
 }
 
@@ -78,7 +84,7 @@ export class Track extends Event {
 
   // The Views it is attached to
   eventViews(): EventViews {
-    return { views: this.views.map(view => view.name) }
+    return { views: this.views }
   }
 
   toViewSpecific(view: View) {

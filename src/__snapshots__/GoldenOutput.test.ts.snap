@@ -7,6 +7,137 @@ exports[`generated output for the example Tracking Plan is unchanged with an asy
 export type ViewNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
 export type Sector = "Retail" | "IT" | "F&B";
 export type login_provider = "auth0" | "facebook" | "apple";
+/**
+ * Facts about Views, declared in the Tracking Plan */
+export type ViewAttributes = {
+    section?: "onboarding" | "account";
+};
+/**
+ * Every View's View attributes */
+export const viewAttributes: Record<ViewNames, ViewAttributes> = { Splash: {}, ValueProposition: { section: "onboarding" }, Login: { section: "onboarding" }, UserProfile: { section: "account" }, CompanyProfile: { section: "account" }, FirstFeatureLanding: {}, SecondFeatureLanding: {} };
+/**
+ * The Event each helper hands to the Implementation. Optional fields are for the Implementation to complete */
+export type AnalyticsEvent = ({
+    type: "view";
+    name: "Splash";
+    properties: null;
+    view: {
+        name?: "Splash";
+    };
+} | {
+    type: "view";
+    name: "ValueProposition";
+    properties: {
+        title: string;
+    };
+    view: {
+        name?: "ValueProposition";
+    };
+} | {
+    type: "view";
+    name: "Login";
+    properties: null;
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "view";
+    name: "UserProfile";
+    properties: null;
+    view: {
+        name?: "UserProfile";
+    };
+} | {
+    type: "view";
+    name: "CompanyProfile";
+    properties: null;
+    view: {
+        name?: "CompanyProfile";
+    };
+} | {
+    type: "view";
+    name: "FirstFeatureLanding";
+    properties: null;
+    view: {
+        name?: "FirstFeatureLanding";
+    };
+} | {
+    type: "view";
+    name: "SecondFeatureLanding";
+    properties: null;
+    view: {
+        name?: "SecondFeatureLanding";
+    };
+} | {
+    type: "track";
+    name: "SkipValueProp";
+    properties: {
+        title: string;
+    };
+    view: {
+        name?: "ValueProposition";
+    };
+} | {
+    type: "track";
+    name: "LoginInitiated";
+    properties: {
+        provider: login_provider;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "LoginFailed";
+    properties: {
+        provider: login_provider;
+        reason?: string;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "LoginSuccess";
+    properties: {
+        provider: login_provider;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "UserProfileCompleted";
+    properties: null;
+    view: {
+        name?: "UserProfile";
+    };
+} | {
+    type: "track";
+    name: "CompanyProfileCompleted";
+    properties: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: Sector[];
+    };
+    view: {
+        name?: "CompanyProfile";
+    };
+}) & {
+    view: {
+        url?: string;
+    } & Partial<ViewAttributes>;
+    source: {
+        widget?: string;
+        element?: string;
+        action?: string;
+        view?: ViewNames;
+        url?: string;
+    };
+};
+/**
+ * What the generated SDK calls to deliver each Event */
+export type Implementation = (event: AnalyticsEvent) => void | Promise<void>;
 ",
   "shared-traits": "import * as shared from "./shared-definitions";
 export type test = shared.login_provider;
@@ -16,97 +147,150 @@ import implementation from "./implementation";
 export * as Types from "./shared-definitions";
 /**
  * Indicates that the user pressed the skip button on a particular value proposition */
-export const SkipValueProp = async (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export const SkipValueProp = async (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "SkipValueProp", props, {
-        view: "ValueProposition",
-        ...source
+    await implementation({
+        type: "track",
+        name: "SkipValueProp",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 /**
  * Indicates that the user intiated a login, we should expect a success, cancellation, or failure shortly */
-export const LoginInitiated = async (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginInitiated = async (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginInitiated", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginInitiated",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 /**
  * Indicates the login has failed */
-export const LoginFailed = async (props: {
-    provider: shared.login_provider;
-    reason?: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginFailed = async (args: {
+    props: {
+        provider: shared.login_provider;
+        reason?: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginFailed", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginFailed",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 /**
  * Indicates the login has succeeded */
-export const LoginSuccess = async (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginSuccess = async (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginSuccess", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginSuccess",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const UserProfileCompleted = async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    await implementation("track", "UserProfileCompleted", props, {
-        view: "UserProfile",
-        ...source
+export const UserProfileCompleted = async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "track",
+        name: "UserProfileCompleted",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 /**
  * Indicates the user has completed a company profile */
-export const CompanyProfileCompleted = async (props: {
-    hasAddress?: boolean;
-    companyType: "llc" | "corporation";
-    sectors: shared.Sector[];
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
+export const CompanyProfileCompleted = async (args: {
+    props: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: shared.Sector[];
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "CompanyProfileCompleted", props, {
-        view: "CompanyProfile",
-        ...source
+    await implementation({
+        type: "track",
+        name: "CompanyProfileCompleted",
+        properties: args.props ?? null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -115,48 +299,72 @@ import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
 /**
  * laksjdlkjasdkljsd */
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
-}) => {
-    await implementation("view", "CompanyProfile", props, {
-        view: "CompanyProfile",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "CompanyProfile",
+        properties: null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const CompanyProfileCompleted = async (props: {
-    hasAddress?: boolean;
-    companyType: "llc" | "corporation";
-    sectors: shared.Sector[];
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
+export const CompanyProfileCompleted = async (args: {
+    props: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: shared.Sector[];
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "CompanyProfileCompleted", props, {
-        view: "CompanyProfile",
-        ...source
+    await implementation({
+        type: "track",
+        name: "CompanyProfileCompleted",
+        properties: args.props ?? null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
   "views/FirstFeatureLanding": "import * as shared from "../shared-definitions";
 import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "FirstFeatureLanding";
-    url?: string;
-}) => {
-    await implementation("view", "FirstFeatureLanding", props, {
-        view: "FirstFeatureLanding",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "FirstFeatureLanding",
+        properties: null,
+        view: {
+            name: "FirstFeatureLanding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -165,75 +373,117 @@ import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
 /**
  * Screen that prompts for login, forwards to a social login provider */
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
-}) => {
-    await implementation("view", "Login", props, {
-        view: "Login",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "Login",
+        properties: null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const LoginInitiated = async (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginInitiated = async (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginInitiated", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginInitiated",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const LoginFailed = async (props: {
-    provider: shared.login_provider;
-    reason?: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginFailed = async (args: {
+    props: {
+        provider: shared.login_provider;
+        reason?: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginFailed", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginFailed",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const LoginSuccess = async (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginSuccess = async (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "LoginSuccess", props, {
-        view: "Login",
-        ...source
+    await implementation({
+        type: "track",
+        name: "LoginSuccess",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
   "views/SecondFeatureLanding": "import * as shared from "../shared-definitions";
 import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "SecondFeatureLanding";
-    url?: string;
-}) => {
-    await implementation("view", "SecondFeatureLanding", props, {
-        view: "SecondFeatureLanding",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "SecondFeatureLanding",
+        properties: null,
+        view: {
+            name: "SecondFeatureLanding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -242,16 +492,23 @@ import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
 /**
  * Screen displayed while the app is loading */
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Splash";
-    url?: string;
-}) => {
-    await implementation("view", "Splash", props, {
-        view: "Splash",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "Splash",
+        properties: null,
+        view: {
+            name: "Splash"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -260,28 +517,44 @@ import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
 /**
  * Screen where the user can fill in their personal information */
-export default async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    await implementation("view", "UserProfile", props, {
-        view: "UserProfile",
-        ...source
+export default async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "view",
+        name: "UserProfile",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const UserProfileCompleted = async (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    await implementation("track", "UserProfileCompleted", props, {
-        view: "UserProfile",
-        ...source
+export const UserProfileCompleted = async (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    await implementation({
+        type: "track",
+        name: "UserProfileCompleted",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -290,32 +563,50 @@ import implementation from ".././implementation";
 export * as Types from "../shared-definitions";
 /**
  * Swipable, and skippable, carousel like screen that shows why people should use our app */
-export default async (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export default async (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("view", "ValueProposition", props, {
-        view: "ValueProposition",
-        ...source
+    await implementation({
+        type: "view",
+        name: "ValueProposition",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
-export const SkipValueProp = async (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export const SkipValueProp = async (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    await implementation("track", "SkipValueProp", props, {
-        view: "ValueProposition",
-        ...source
+    await implementation({
+        type: "track",
+        name: "SkipValueProp",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     });
 };
 ",
@@ -329,6 +620,137 @@ exports[`generated output for the example Tracking Plan is unchanged without an 
 export type ViewNames = "Splash" | "ValueProposition" | "Login" | "UserProfile" | "CompanyProfile" | "FirstFeatureLanding" | "SecondFeatureLanding";
 export type Sector = "Retail" | "IT" | "F&B";
 export type login_provider = "auth0" | "facebook" | "apple";
+/**
+ * Facts about Views, declared in the Tracking Plan */
+export type ViewAttributes = {
+    section?: "onboarding" | "account";
+};
+/**
+ * Every View's View attributes */
+export const viewAttributes: Record<ViewNames, ViewAttributes> = { Splash: {}, ValueProposition: { section: "onboarding" }, Login: { section: "onboarding" }, UserProfile: { section: "account" }, CompanyProfile: { section: "account" }, FirstFeatureLanding: {}, SecondFeatureLanding: {} };
+/**
+ * The Event each helper hands to the Implementation. Optional fields are for the Implementation to complete */
+export type AnalyticsEvent = ({
+    type: "view";
+    name: "Splash";
+    properties: null;
+    view: {
+        name?: "Splash";
+    };
+} | {
+    type: "view";
+    name: "ValueProposition";
+    properties: {
+        title: string;
+    };
+    view: {
+        name?: "ValueProposition";
+    };
+} | {
+    type: "view";
+    name: "Login";
+    properties: null;
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "view";
+    name: "UserProfile";
+    properties: null;
+    view: {
+        name?: "UserProfile";
+    };
+} | {
+    type: "view";
+    name: "CompanyProfile";
+    properties: null;
+    view: {
+        name?: "CompanyProfile";
+    };
+} | {
+    type: "view";
+    name: "FirstFeatureLanding";
+    properties: null;
+    view: {
+        name?: "FirstFeatureLanding";
+    };
+} | {
+    type: "view";
+    name: "SecondFeatureLanding";
+    properties: null;
+    view: {
+        name?: "SecondFeatureLanding";
+    };
+} | {
+    type: "track";
+    name: "SkipValueProp";
+    properties: {
+        title: string;
+    };
+    view: {
+        name?: "ValueProposition";
+    };
+} | {
+    type: "track";
+    name: "LoginInitiated";
+    properties: {
+        provider: login_provider;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "LoginFailed";
+    properties: {
+        provider: login_provider;
+        reason?: string;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "LoginSuccess";
+    properties: {
+        provider: login_provider;
+    };
+    view: {
+        name?: "Login";
+    };
+} | {
+    type: "track";
+    name: "UserProfileCompleted";
+    properties: null;
+    view: {
+        name?: "UserProfile";
+    };
+} | {
+    type: "track";
+    name: "CompanyProfileCompleted";
+    properties: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: Sector[];
+    };
+    view: {
+        name?: "CompanyProfile";
+    };
+}) & {
+    view: {
+        url?: string;
+    } & Partial<ViewAttributes>;
+    source: {
+        widget?: string;
+        element?: string;
+        action?: string;
+        view?: ViewNames;
+        url?: string;
+    };
+};
+/**
+ * What the generated SDK calls to deliver each Event */
+export type Implementation = (event: AnalyticsEvent) => void | Promise<void>;
 ",
   "shared-traits": "import * as shared from "./shared-definitions";
 export type test = shared.login_provider;
@@ -337,97 +759,150 @@ export type test = shared.login_provider;
 export * as Types from "./shared-definitions";
 /**
  * Indicates that the user pressed the skip button on a particular value proposition */
-export const SkipValueProp = (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export const SkipValueProp = (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "SkipValueProp", props, {
-        view: "ValueProposition",
-        ...source
+    console.log({
+        type: "track",
+        name: "SkipValueProp",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 /**
  * Indicates that the user intiated a login, we should expect a success, cancellation, or failure shortly */
-export const LoginInitiated = (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginInitiated = (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginInitiated", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginInitiated",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 /**
  * Indicates the login has failed */
-export const LoginFailed = (props: {
-    provider: shared.login_provider;
-    reason?: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginFailed = (args: {
+    props: {
+        provider: shared.login_provider;
+        reason?: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginFailed", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginFailed",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 /**
  * Indicates the login has succeeded */
-export const LoginSuccess = (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginSuccess = (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginSuccess", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginSuccess",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const UserProfileCompleted = (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    console.log("track", "UserProfileCompleted", props, {
-        view: "UserProfile",
-        ...source
+export const UserProfileCompleted = (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "track",
+        name: "UserProfileCompleted",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 /**
  * Indicates the user has completed a company profile */
-export const CompanyProfileCompleted = (props: {
-    hasAddress?: boolean;
-    companyType: "llc" | "corporation";
-    sectors: shared.Sector[];
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
+export const CompanyProfileCompleted = (args: {
+    props: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: shared.Sector[];
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "CompanyProfileCompleted", props, {
-        view: "CompanyProfile",
-        ...source
+    console.log({
+        type: "track",
+        name: "CompanyProfileCompleted",
+        properties: args.props ?? null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
@@ -435,47 +910,71 @@ export const CompanyProfileCompleted = (props: {
 export * as Types from "../shared-definitions";
 /**
  * laksjdlkjasdkljsd */
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
-}) => {
-    console.log("view", "CompanyProfile", props, {
-        view: "CompanyProfile",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "CompanyProfile",
+        properties: null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const CompanyProfileCompleted = (props: {
-    hasAddress?: boolean;
-    companyType: "llc" | "corporation";
-    sectors: shared.Sector[];
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "CompanyProfile";
-    url?: string;
+export const CompanyProfileCompleted = (args: {
+    props: {
+        hasAddress?: boolean;
+        companyType: "llc" | "corporation";
+        sectors: shared.Sector[];
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "CompanyProfileCompleted", props, {
-        view: "CompanyProfile",
-        ...source
+    console.log({
+        type: "track",
+        name: "CompanyProfileCompleted",
+        properties: args.props ?? null,
+        view: {
+            name: "CompanyProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
   "views/FirstFeatureLanding": "import * as shared from "../shared-definitions";
 export * as Types from "../shared-definitions";
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "FirstFeatureLanding";
-    url?: string;
-}) => {
-    console.log("view", "FirstFeatureLanding", props, {
-        view: "FirstFeatureLanding",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "FirstFeatureLanding",
+        properties: null,
+        view: {
+            name: "FirstFeatureLanding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
@@ -483,74 +982,116 @@ export default (props?: null, source?: {
 export * as Types from "../shared-definitions";
 /**
  * Screen that prompts for login, forwards to a social login provider */
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
-}) => {
-    console.log("view", "Login", props, {
-        view: "Login",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "Login",
+        properties: null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const LoginInitiated = (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginInitiated = (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginInitiated", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginInitiated",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const LoginFailed = (props: {
-    provider: shared.login_provider;
-    reason?: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginFailed = (args: {
+    props: {
+        provider: shared.login_provider;
+        reason?: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginFailed", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginFailed",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const LoginSuccess = (props: {
-    provider: shared.login_provider;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Login";
-    url?: string;
+export const LoginSuccess = (args: {
+    props: {
+        provider: shared.login_provider;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "LoginSuccess", props, {
-        view: "Login",
-        ...source
+    console.log({
+        type: "track",
+        name: "LoginSuccess",
+        properties: args.props ?? null,
+        view: {
+            name: "Login",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
   "views/SecondFeatureLanding": "import * as shared from "../shared-definitions";
 export * as Types from "../shared-definitions";
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "SecondFeatureLanding";
-    url?: string;
-}) => {
-    console.log("view", "SecondFeatureLanding", props, {
-        view: "SecondFeatureLanding",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "SecondFeatureLanding",
+        properties: null,
+        view: {
+            name: "SecondFeatureLanding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
@@ -558,16 +1099,23 @@ export default (props?: null, source?: {
 export * as Types from "../shared-definitions";
 /**
  * Screen displayed while the app is loading */
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "Splash";
-    url?: string;
-}) => {
-    console.log("view", "Splash", props, {
-        view: "Splash",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "Splash",
+        properties: null,
+        view: {
+            name: "Splash"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
@@ -575,28 +1123,44 @@ export default (props?: null, source?: {
 export * as Types from "../shared-definitions";
 /**
  * Screen where the user can fill in their personal information */
-export default (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    console.log("view", "UserProfile", props, {
-        view: "UserProfile",
-        ...source
+export default (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "view",
+        name: "UserProfile",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const UserProfileCompleted = (props?: null, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "UserProfile";
-    url?: string;
-}) => {
-    console.log("track", "UserProfileCompleted", props, {
-        view: "UserProfile",
-        ...source
+export const UserProfileCompleted = (args: {
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
+} = {}) => {
+    console.log({
+        type: "track",
+        name: "UserProfileCompleted",
+        properties: null,
+        view: {
+            name: "UserProfile",
+            section: "account"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",
@@ -604,32 +1168,50 @@ export const UserProfileCompleted = (props?: null, source?: {
 export * as Types from "../shared-definitions";
 /**
  * Swipable, and skippable, carousel like screen that shows why people should use our app */
-export default (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export default (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("view", "ValueProposition", props, {
-        view: "ValueProposition",
-        ...source
+    console.log({
+        type: "view",
+        name: "ValueProposition",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
-export const SkipValueProp = (props: {
-    title: string;
-}, source?: {
-    widget?: string;
-    element?: string;
-    action?: string;
-    view?: "ValueProposition";
-    url?: string;
+export const SkipValueProp = (args: {
+    props: {
+        title: string;
+    };
+    source?: {
+        widget?: string;
+        element?: string;
+        action?: string;
+    };
 }) => {
-    console.log("track", "SkipValueProp", props, {
-        view: "ValueProposition",
-        ...source
+    console.log({
+        type: "track",
+        name: "SkipValueProp",
+        properties: args.props ?? null,
+        view: {
+            name: "ValueProposition",
+            section: "onboarding"
+        },
+        source: {
+            ...args.source
+        }
     })
 };
 ",

@@ -113,4 +113,10 @@ export type EventDefinition = {
 
 export type TrackDefinition = Omit<EventDefinition, "type">
 
-export type ViewDefinition = Omit<EventDefinition, "type"> & { tracks?: string[] }
+// The value of one View attribute, set per View
+export type ViewAttributeValue = string | number | boolean
+
+export type ViewDefinition = Omit<EventDefinition, "type"> & {
+  tracks?: string[]
+  attributes?: { [attribute: string]: ViewAttributeValue }
+}

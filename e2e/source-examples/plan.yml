@@ -1,10 +1,7 @@
 source:
   required:
     - campaign
-    - platform
   properties:
-    platform:
-      const: web
     campaign:
       $ref: "#/$defs/Campaign"
     placement:

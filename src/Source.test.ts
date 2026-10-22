@@ -19,7 +19,7 @@ describe('Source attributes', () => {
 
     it('replaces the default Source attributes with the declared ones', () => {
       expect(sourceParameterOf(generate(plan)['tracks'], 'SomeTrack')).toEqual(
-        '{ campaign?: string; view: shared.ViewNames; url?: string; }'
+        '{ campaign?: string; }'
       )
     })
 
@@ -31,33 +31,19 @@ describe('Source attributes', () => {
       }
 
       expect(sourceParameterOf(generate(withRef)['views/Home'], 'default')).toEqual(
-        '{ campaign?: shared.Campaign; view?: "Home"; url?: string; }'
+        '{ campaign?: shared.Campaign; }'
       )
     })
   })
 
   describe('constant Source attributes', () => {
-    const plan = {
-      source: {
-        required: ['platform'],
-        properties: {
-          platform: { const: 'web' }
-        }
-      },
-      tracks: {
-        SomeTrack: {}
-      },
-      views: {
-        Home: {}
-      }
-    }
+    it('make the Tracking Plan fail to load', () => {
+      const plan = { source: { properties: { platform: { const: 'web' } } } }
 
-    it('sends the constant to the implementation, before the caller\'s Source', () => {
-      expect(generate(plan)['tracks']).toMatch(
-        /console\.log\("track", "SomeTrack", props, \{\s*platform: "web",\s*\.\.\.source\s*\}\)/
+      expect(() => new TrackingPlan(plan)).toThrow(
+        'Source attributes cannot be constants, since facts about the build belong to the Implementation: platform'
       )
     })
-
   })
 
   describe('reserved Source attributes', () => {

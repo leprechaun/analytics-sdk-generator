@@ -2,8 +2,8 @@ import login, * as loginTracks from '../output/view/views/Login'
 import farmMap from '../output/view/views/FarmMap'
 
 login()
-login(null, { url: 'https://example.com/login', widget: 'header' })
-farmMap(null, { view: 'FarmMap' })
+login({ source: { widget: 'header' } })
+farmMap({ source: { widget: 'menu' } })
 
-loginTracks.LoginFailed({ reason: 'timeout' })
-loginTracks.LoginFailed({ reason: 'timeout' }, { url: 'https://example.com/login' })
+loginTracks.LoginFailed({ props: { reason: 'timeout' } })
+loginTracks.LoginFailed({ props: { reason: 'timeout' }, source: { action: 'submit' } })

@@ -2,6 +2,7 @@ import * as EventTypes from './EventTypes'
 import TypeMapper from './TypeMapper'
 import { EventDefinition, TrackDefinition, TypeDefinition, ViewDefinition } from './InputTypes'
 import { Sources } from './Source'
+import { ViewAttributes } from './ViewAttributes'
 
 import {
   NamedType,
@@ -13,6 +14,7 @@ export default class TrackingPlan {
   defs: NamedType[]
   traits: NamedType[]
   sources: Sources
+  viewAttributes: ViewAttributes
 
   constructor(plan: any) {
     this.views = []
@@ -28,10 +30,11 @@ export default class TrackingPlan {
       throw new Error(`\`screens\` is no longer supported: declare ${Object.keys(plan.screens).join(', ')} under \`views\` instead`)
     }
 
+    this.viewAttributes = new ViewAttributes(plan?.view_attributes)
     this.parseViews(plan?.views)
     this.parseDefs(plan?.$defs)
     this.parseTraits(plan?.traits)
-    this.sources = new Sources(plan?.source, this.views.map(view => view.name))
+    this.sources = new Sources(plan?.source)
   }
 
   parseTraits(traits) {
@@ -72,7 +75,7 @@ export default class TrackingPlan {
         throw new Error(`\`on\` is no longer supported: View ${key} is reported as a Screen or a Page by the Implementation`)
       }
 
-      const view = new EventTypes.View({...definition, key})
+      const view = new EventTypes.View({...definition, key, attributes: this.viewAttributes.of(key, definition.attributes)})
       for(const trackName of definition.tracks ?? []) {
         const track = this.getTrack(trackName)
         view.tracks.push(track.toViewSpecific(view))
